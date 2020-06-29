@@ -1,0 +1,266 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@using HOASunridge.Models
+@using Microsoft.AspNetCore.Http
+
+@model HOASunridge.Pages.Admin.Keys.IndexModel
+
+@{ ViewData["Title"] = "Sundridge Key Directory";
+    ViewData["PageName"] = "Keys";
+    TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default admin-owners" id="admin-owners">
+            <div class="box-header with-border">
+                <h3 class="box-title">Sundridge Key History Directory</h3>
+            </div>
+
+            <div class="form-group search-div pull-left">
+                <div class="form-group has-feedback">
+                    <form asp-page="./Index" method="get" class="searchForm">
+                        <input type="text" name="SearchString" value="@Model.CurrentFilter" class="form-control search" id="inputValidation" placeholder="Search" />
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </form>
+                </div>
+            </div>
+            <div class="pull-right export-pdf table-top">
+                <a class="btn btn-accent" asp-page="./Create">Assign a Key</a>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            Serial Number
+                            @if (Model.CurrentSort == "serialNum_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="serialNum_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="serialNum_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Date Issued
+                            @if (Model.CurrentSort == "issued_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="issued_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="issued_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Date Returned
+                            @if (Model.CurrentSort == "returned_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="returned_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="returned_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Status
+                            @if (Model.CurrentSort == "status_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="status_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="status_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Amount
+                            @if (Model.CurrentSort == "amount_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="amount_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="amount_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Assigned Owner
+                            @if (Model.CurrentSort == "owner_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="owner_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="owner_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Keys != null) {
+                        foreach (var key in Model.Keys) {
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => key.SerialNumber)</td>
+                                <td>@Html.DisplayFor(modelItem => key.KeyHistory.DateIssued)</td>
+                                <td>@Html.DisplayFor(modelItem => key.KeyHistory.DateReturned)</td>
+                                @if (key.KeyHistory != null) {
+                                    if (key.KeyHistory.Status.Equals("Active")) {
+                                        <td><span class="badge badge-success">@Html.DisplayFor(modelItem => key.KeyHistory.Status)</span></td>
+                                    }
+                                    else if (key.KeyHistory.Status.Equals("Returned")) {
+                                        <td><span class="badge badge-warning">@Html.DisplayFor(modelItem => key.KeyHistory.Status)</span></td>
+                                    }
+                                    else if (key.KeyHistory.Status.Equals("Lost")) {
+                                        <td><span class="badge badge-danger">@Html.DisplayFor(modelItem => key.KeyHistory.Status)</span></td>
+                                    }
+                                }
+                                else {
+                                    <td></td>
+                                }
+                                <td>@Html.DisplayFor(modelItem => key.KeyHistory.PaidAmount)</td>
+
+                                <td>
+                                    <a asp-page="../../Owner/Profile" asp-route-id="@key.KeyHistory?.Owner.OwnerID">
+                                        @Html.DisplayFor(modelItem => key.KeyHistory.Owner.FullName)
+                                    </a>
+                                </td>
+                                <td data-toggle="tooltip" title="mark returned">
+                                    <a id="markReturned" data-id="@key.KeyID" data-toggle="modal" data-target="#returnedKey"><i class="fas fa-sign-in-alt icon-warning"></i></a>
+                                </td>
+                                <td data-toggle="tooltip" title="mark lost">
+                                    <a id="markLost" data-id="@key.KeyID" data-toggle="modal" data-target="#lostKey"><i class="fas fa-exclamation icon-danger"></i></a>
+                                </td>
+                                <td data-toggle="tooltip" title="edit key"><a asp-page="./Edit" asp-route-id="@key.KeyID"><i class="fas fa-pen"></i></a></td>
+                                <td data-toggle="tooltip" title="delete key">
+                                    <a id="markDeleted" data-id="@key.KeyID" data-toggle="modal" data-target="#deleteKey"><i class="fas fa-trash-alt"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            @{
+                var prevDisabled = !Model.Keys.HasPreviousPage ? "disabled" : "";
+                var nextDisabled = !Model.Keys.HasNextPage ? "disabled" : "";
+                var pageIndex = Model.Keys.PageIndex;
+            }
+
+            <ul class="pagination">
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="1"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @prevDisabled">
+                    First
+                </a>
+                @for (int i = 1; i <= Model.Keys.TotalPages; i++) {
+                    if (pageIndex == i) {
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(i)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default active">
+                            @(i)
+                        </a>
+                    }
+                    else {
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(i)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(i)
+                        </a>
+                    }
+                }
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="@Model.Keys.TotalPages"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @nextDisabled">
+                    Last
+                </a>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!----------Returned Keys Modal-------------->
+<div class="modal fade" id="returnedKey" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Returned Key</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure that you would like to mark this key as returned? </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-accent" id="returnModal" asp-page="./ReturnKey">Yes</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------Lost Keys Modal-------------->
+<div class="modal fade" id="lostKey" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Lost Key</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure that you would like to mark this key as lost? </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-accent" id="lostModal" asp-page="./LostKey">Yes</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------Delete Keys Modal-------------->
+<div class="modal fade" id="deleteKey" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Delete Key</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure that you would like to delete this key history? </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-danger" id="deleteKeyModal" asp-page="./Delete">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).on("click", "#markLost",
+            function () {
+                var id = $(this).data('id');
+                var url = $("#lostModal").attr("href");
+                $("#lostModal").attr("href", url + "?id=" + id);
+            });
+
+        $(document).on("click", "#markReturned",
+            function () {
+                var id = $(this).data('id');
+                var url = $("#returnModal").attr("href");
+                $("#returnModal").attr("href", url + "?id=" + id);
+            });
+
+        $(document).on("click", "#markDeleted",
+            function () {
+                var id = $(this).data('id');
+                var url = $("#deleteKeyModal").attr("href");
+                $("#deleteKeyModal").attr("href", url + "?id=" + id);
+            });
+    </script>
+}

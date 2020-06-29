@@ -1,0 +1,30 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.CommonArea.ChangeStatusModel
+
+@{ ViewData["Title"] = "Disable";
+                ViewData["PageName"] = "CommonArea";
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect(@Url.Content("~/User/Login"));
+}
+
+<form method="post" id="change">
+    <input type="hidden" asp-for="CommonAreaAsset.CommonAreaAssetID" />
+    <p id="message"></p>
+</form>
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            $('#change').submit();
+        });
+
+        setTimeout(displayMessage, 3000);
+        function displayMessage() {
+            document.getElementById("message").innerHTML = 'If you are not redirected soon, please click <a asp-page="./ Index" onclick="form.submit()">here </a>';
+        }
+    </script>
+}

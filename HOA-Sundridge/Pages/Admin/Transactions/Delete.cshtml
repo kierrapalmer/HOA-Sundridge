@@ -1,0 +1,30 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.Transactions.DeleteModel
+
+@{ ViewData["Title"] = "Delete";
+                ViewData["PageName"] = "Transactions";
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect(@Url.Content("~/User/Login"));
+}
+
+<form method="post" id="deleteTransaction">
+    <input type="hidden" asp-for="Transaction.TransactionID" />
+    <p id="message"></p>
+</form>
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            $('#deleteTransaction').submit();
+        });
+
+        setTimeout(displayMessage, 3000);
+        function displayMessage() {
+            document.getElementById("message").innerHTML = 'If you are not redirected soon, please click <a asp-page="./Index" onclick="form.submit()">here </a>';
+        }
+    </script>
+}

@@ -1,0 +1,94 @@
+﻿@page
+@using HOASunridge.Models
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Classifieds.IndexModel
+@using Microsoft.AspNetCore.Http
+
+@{ ViewData["Title"] = "Index";
+                ViewData["PageName"] = "Classifieds";
+                TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+
+    Response.Redirect(@Url.Content("~/User/Login"));
+}
+
+<div class="box box-default classifieds">
+    <div class="box-header with-border">
+        <h3 class="box-title">HOA Classified Ads</h3>
+        <a class="btn btn-accent pull-right" asp-page="./Create" style="margin:0">Add New Classified</a>
+    </div>
+    <!--TODO:
+    IF Admin: Show all HOA ads
+    IF Owner: Only show their own ads-->
+    <div class="row classified-list">
+        <h3 style="padding-left: 10px;">Your Ads</h3>
+
+        @{ var counter = -1;}
+        @if (Model.OwnerClassifiedListing != null) {
+
+            foreach (var listing in Model.OwnerClassifiedListing) {
+                counter += 1;
+
+                //Close and starts a new row
+                if (counter > 0 && counter % 3 == 0) {
+                @:</div><div class="row classified-list">
+                }
+
+                <div class="col-md-4 classified-item">
+                    @{ var item = listing.Files.FirstOrDefault(); }
+                    @if (item != null && item.FileStream != null) {
+                        <a asp-page="Details" asp-route-id="@listing.ClassifiedListingID"><img src="@listing.GetInlineImageSrc(listing.Files.FirstOrDefault())" alt="Main image"></a>
+                    }
+                    else {
+                        <a asp-page="Details" asp-route-id="@listing.ClassifiedListingID"><img src="https://via.placeholder.com/300?text=No+image+uploaded" alt="Main image"></a>
+
+                    }
+                    <a class="pull-right" asp-page="Edit" asp-route-id="@listing.ClassifiedListingID"><i class="fas fa-pen"></i></a>
+
+                    <h4><a asp-page="Details" asp-route-id="@listing.ClassifiedListingID"> @Html.DisplayFor(model => listing.ItemName)</a></h4>
+
+                    @if (listing.Price != null && listing.Price != 0.00) {
+                        <p class="price">@Html.DisplayFor(modelItem => listing.Price)</p>
+                    }
+                </div>
+            }
+        }
+    </div>
+    @if (Model.SignedInOwner?.User?.UserType == "Admin") {
+        <div class="row classified-list">
+            <h3 style="padding-left: 10px;">All HOA Ads</h3>
+
+            @{ var counter2 = -1; }
+
+            @foreach (var listing in Model.AllClassifiedListing) {
+                counter += 1;
+
+                //Close and starts a new row
+                if (counter2 > 0 && counter2 % 3 == 0) {
+                @:</div><div class="row classified-list">
+                }
+
+                <div class="col-md-4 classified-item">
+                    @{ var item = listing.Files.FirstOrDefault(); }
+                    @if (item != null && item.FileStream != null) {
+                        <a asp-page="Details" asp-route-id="@listing.ClassifiedListingID"><img src="@listing.GetInlineImageSrc(listing.Files.FirstOrDefault())" alt="Main image"></a>
+                    }
+                    else {
+                        <a asp-page="Details" asp-route-id="@listing.ClassifiedListingID"><img src="https://via.placeholder.com/300?text=No+image+uploaded" alt="Main image"></a>
+
+                    }
+                    <a class="pull-right" asp-page="Edit" asp-route-id="@listing.ClassifiedListingID"><i class="fas fa-pen"></i></a>
+
+                    <h4><a asp-page="Details" asp-route-id="@listing.ClassifiedListingID"> @Html.DisplayFor(model => listing.ItemName)</a></h4>
+
+                    @if (listing.Price != null && listing.Price != 0.00) {
+                        <p class="price"> @Html.DisplayFor(modelItem => listing.Price)</p>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,10 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.Lots.LotInventoryPageModel
+@{ ViewData["Title"] = "LotInventoryPageModel";
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect(@Url.Content("~/User/Login"));
+}

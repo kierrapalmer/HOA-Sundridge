@@ -1,0 +1,211 @@
+﻿@page
+@using HOASunridge.Pages
+@using Microsoft.AspNetCore.Http
+
+@model LotDetailModel
+@{
+    ViewData["Title"] = "My Lots";
+    TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+    //On this page, PageName is set lower in code than normal
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect(@Url.Content("~/User/Login"));
+}
+
+<div class="row" id="body">
+    <div class="col-md-12">
+        <div class="box box-default owner-lots" id="owner-lots-box">
+            <div class="box-header with-border">
+                @if (Model.Lots == null || Model.Lots?.Count < 1) {
+                    <h2>No lots to show</h2>
+                }
+
+                else if (Model.Lots.FirstOrDefault()?.Owner != null) {
+                    if (Model.Lots.FirstOrDefault().Owner.FullName == Model.SignedInOwner.FullName) {
+                        //Current viewer is the lots owner
+                        <h3 class="box-title">My Lots</h3>
+                        ViewData["PageName"] = "LotDetail";
+
+                    }
+                    else {
+                        <h3 class="box-title">Lots - @Model.Lots.FirstOrDefault().Owner.FullName</h3>
+                        ViewData["PageName"] = "Lots";
+
+                    }
+                }
+                else {
+                    <h3 class="box-title">Lots</h3>
+                    ViewData["PageName"] = "Lots";
+                }
+            </div>
+            <br />
+            <div class="panel-group" id="accordion">
+                @if (Model.Lots != null) {
+                    foreach (var lot in Model.Lots) {
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion" data-target="#@lot.LotID" style="width: 100%">
+                                    <h4 class="panel-title">@lot.LotNumber</h4>
+                                </a>
+                            </div>
+
+                            <div id="@lot.LotID" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-md-3 lot-titles">
+                                            <p>Tax Id</p>
+                                            <p>Property Features</p>
+                                            <p>Primary Owner</p>
+                                            <p>Co Owner</p>
+                                        </div>
+                                        <div class="col-md-5">
+                                            @*  Note: All Tax ids on the Weber County Tax website are stored as 9 digit number string.
+                                                We are storing our tax ID(aka LotID) as a int. Due to all leading zeros being deleted from ints,
+                                                to probably link to Weber County tax website, we must manually add a 0 before the stored value  *@
+
+                                            @if (Math.Floor(Math.Log10(lot.LotID)) + 1 == 8) {
+
+                                                <p>
+                                                    <a href='@string.Format("http://www3.co.weber.ut.us/psearch/tax_summary.php?id=0{0}", @lot.LotID)' target="_blank">
+                                                        @string.Format("0{0}", @lot.LotID)
+                                                    </a>
+                                                </p>
+                                            }
+                                            else {
+                                                <p> <a href="http://www3.co.weber.ut.us/psearch/tax_summary.php?id=@lot.LotID" target="_blank">@Html.DisplayFor(modelItem => lot.LotID)</a></p>
+
+                                            }
+
+                                            @if (!string.IsNullOrEmpty(lot.InventoryItems)) {
+                                                <p>@Html.DisplayFor(modelItem => lot.InventoryItems)</p>
+                                            }
+                                            else {
+                                                <p><br /></p>
+                                            }
+
+                                            @if (lot.Owner != null) {
+                                                <p>
+                                                    <a asp-page="Profile" asp-route-id="@lot.Owner.OwnerID">@Html.DisplayFor(modelItem => lot.Owner.FullName)</a>
+                                                </p>
+
+                                                // foreach (var co in lot.Owner.CoOwner) {
+                                                <p>
+                                                    @{ var coowner = Model.GetCoOwner(lot); }
+                                                    @Html.DisplayFor(modelItem => coowner.FullName)
+                                                </p>
+                                                // }
+                                            }
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p class="lot-titles"> Physical Address</p>
+                                            <div class="address-box">
+                                                <p>
+                                                    @Html.DisplayFor(modelItem => lot.Address.StreetAddress)<br />
+                                                    @Html.DisplayFor(modelItem => lot.Address.HalfAddress)
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div><!--end row-->
+                                    <br />
+                                    <p class="lot-titles">Activity History</p>
+
+                                    @if (Model.GetOwnerHistory(lot.LotID).Count > 0) {
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Type</th>
+                                                    @if (Model.SignedInOwner?.User.UserType == "Admin") {
+                                                        <th>Privacy Level</th>
+                                                    }
+                                                    <th>Description</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var activity in Model.GetOwnerHistory(lot.LotID)) {
+                                                    if (activity.PrivacyLevel == "Public" && Model.SignedInOwner?.User.UserType == "Owner") {
+                                                        <tr>
+                                                            <td>@activity.Date</td>
+                                                            <td>@activity.HistoryType.Description</td>
+                                                            <td class="description">
+
+                                                                <div class="flex-parent">
+                                                                    <div class="flex-child truncate" id="@("desc" + activity.OwnerHistoryID)">
+                                                                        <span>@Html.DisplayFor(modelItem => activity.Description)</span>
+                                                                    </div>
+                                                                    <a href="#" class="moreDesc hidden" data-toggle="modal" data-target="#moreInfo" data-id="@activity.OwnerHistoryID">more</a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                    else if (Model.SignedInOwner?.User.UserType == "Admin") {  //User is a admin, display internal and public
+                                                        <tr>
+                                                            <td>@activity.Date</td>
+                                                            <td>@activity.HistoryType.Description</td>
+                                                            @if (Model.SignedInOwner.User.UserType == "Admin") {
+                                                                <td>@activity.PrivacyLevel</td>
+                                                            }
+                                                            <td class="description">
+
+                                                                <div class="flex-parent">
+                                                                    <div class="flex-child truncate" id="@("desc" + activity.OwnerHistoryID)">
+                                                                        <span>@Html.DisplayFor(modelItem => activity.Description)</span>
+                                                                    </div>
+                                                                    <a href="#" class="moreDesc hidden" data-toggle="modal" data-target="#moreInfo" data-id="@activity.OwnerHistoryID">more</a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    else {
+                                        <p>No Activity History to show for this owner.</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div><!--end panel group-->
+        </div><!--end box-->
+    </div>
+</div>
+<!----------More info-------------->
+<div class="modal fade" id="moreInfo" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Transaction Description</h4>
+            </div>
+            <div class="modal-body">
+                <p id="more">more</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).on("click",
+            ".moreDesc",
+            function() {
+                var text = $(this).data('desc');
+                $(".modal-body #more").text(text);
+
+            });
+
+        $(document).ready(function() {
+            var i = '#' + @Model.ActiveLotID;
+            $(i).addClass('in');
+            $(i).css("height", "auto");
+        });
+    </script>
+}

@@ -1,0 +1,56 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.CreateModel
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect(@Url.Content("~/User/Login"));
+}
+<h4>Lot</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Lot.OwnerID" class="control-label"></label>
+                <input asp-for="Lot.OwnerID" class="form-control" />
+                <span asp-validation-for="Lot.OwnerID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Lot.AddressID" class="control-label"></label>
+                <select asp-for="Lot.AddressID" class="form-control" asp-items="ViewBag.AddressID"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Lot.Status" class="control-label"></label>
+                <input asp-for="Lot.Status" class="form-control" />
+                <span asp-validation-for="Lot.Status" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Lot.LotNumber" class="control-label"></label>
+                <input asp-for="Lot.LotNumber" class="form-control" />
+                <span asp-validation-for="Lot.LotNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Lot.LastModifiedBy" class="control-label"></label>
+                <input asp-for="Lot.LastModifiedBy" class="form-control" />
+                <span asp-validation-for="Lot.LastModifiedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Lot.LastModifiedDate" class="control-label"></label>
+                <input asp-for="Lot.LastModifiedDate" class="form-control" />
+                <span asp-validation-for="Lot.LastModifiedDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

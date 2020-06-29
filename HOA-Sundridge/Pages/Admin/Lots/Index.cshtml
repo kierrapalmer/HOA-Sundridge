@@ -1,0 +1,198 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model IndexModel
+@using Microsoft.AspNetCore.Http
+
+@{
+    ViewData["Title"] = "Sundridge Lots Directory";
+    ViewData["PageName"] = "Lots";
+    TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default admin-owners" id="admin-owners">
+            <div class="box-header with-border">
+                <h3 class="box-title">Sundridge Lots Directory</h3>
+            </div>
+            <div class="form-group search-div pull-left">
+                <div class="form-group has-feedback">
+                    <form asp-page="./Index" method="get" class="searchForm">
+                        <input type="text" class="form-control search" name="searchString" value="@Model.CurrentFilter" id="inputValidation" placeholder="Search" />
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </form>
+                </div>
+            </div>
+
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            Tax Id
+                            @if (Model.CurrentSort == "taxId_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="taxId_asc"><i class="fa fa-sort-up float-right"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="taxId_desc"><i class="fa fa-sort-down float-right"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Lot #
+                            @if (Model.CurrentSort == "lotNum_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="lotNum_asc"><i class="fa fa-sort-up float-right"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="lotNum_desc"><i class="fa fa-sort-down float-right"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Physical Address
+                            @if (Model.CurrentSort == "address_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="address_asc"><i class="fa fa-sort-up float-right"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="address_desc"><i class="fa fa-sort-down float-right"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Status
+                            @if (Model.CurrentSort == "status_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="status_asc"><i class="fa fa-sort-up float-right"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="status_desc"><i class="fa fa-sort-down float-right"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Inventory
+                            @if (Model.CurrentSort == "inventory_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="inventory_asc"><i class="fa fa-sort-up float-right"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="inventory_desc"><i class="fa fa-sort-down float-right"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Current Owner
+                            @if (Model.CurrentSort == "owner_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="owner_asc"><i class="fa fa-sort-up float-right"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="owner_desc"><i class="fa fa-sort-down float-right"></i></a>
+                            }
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Lots != null) {
+                        foreach (var lot in Model.Lots) {
+                            <tr>
+                                <td>
+                                    @*  Note: All Tax ids on the Weber County Tax website are stored as 9 digit number string.
+                                        We are storing our taxID as a int. Due to all leading zeros being deleted from ints,
+                                        to probably link to Weber County tax website, we must a 0 before the stored value  *@
+                                    @if (Math.Floor(Math.Log10(lot.LotID)) + 1 == 8) {
+
+                                        <a href='@string.Format("http://www3.co.weber.ut.us/psearch/tax_summary.php?id=0{0}", @lot.LotID)' target="_blank">
+                                            @string.Format("0{0}", @lot.LotID)
+                                        </a>
+
+                                    }
+                                    else {
+                                        <a href="http://www3.co.weber.ut.us/psearch/tax_summary.php?id=@lot.LotID" target="_blank">@Html.DisplayFor(modelItem => lot.LotID)</a>
+
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-page="../../Owner/LotDetail" asp-route-id="@lot.LotID">#@Html.DisplayFor(modelItem => lot.LotNumber)</a>
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => lot.Address.StreetAddress)
+                                    <br />
+                                    @Html.DisplayFor(modelItem => lot.Address.HalfAddress)
+                                </td>
+                                <td>
+                                    @if (lot.Status.Equals("Occupied")) {
+                                        <span class="badge badge-success">Occupied</span>
+                                    }
+                                    @if (lot.Status.Equals("Vacant")) {
+                                        <span class="badge badge-secondary">Vacant</span>
+                                    }
+                                    @if (lot.Status.Equals("For Sale")) {
+                                        <span class="badge badge-warning">For Sale</span>
+                                    }
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => lot.InventoryItems)
+                                </td>
+                                <td>
+                                    <a asp-page="../../Owner/Profile" asp-route-id="@lot.OwnerID">@Html.DisplayFor(modelItem => lot.Owner.FullName)</a>
+                                </td>
+                                <td data-toggle="tooltip" title="Edit Lot">
+                                    <a asp-page="./Edit" asp-route-id="@lot.LotID"><i class="fas fa-pen"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            @{
+                var prevDisabled = !Model.Lots.HasPreviousPage ? "disabled" : "";
+                var nextDisabled = !Model.Lots.HasNextPage ? "disabled" : "";
+                var pageIndex = Model.Lots.PageIndex;
+            }
+
+            <ul class="pagination">
+                <li>
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="1"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default @prevDisabled">
+                        First
+                    </a>
+                </li>
+                @for (int i = 1; i <= Model.Lots.TotalPages; i++) {
+                    <li>
+                        @if (pageIndex == i)
+                        {
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(i)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default active">
+                            @(i)
+                        </a>
+                        }
+                        else
+                        {
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(i)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(i)
+                        </a>
+                        }
+                    </li>
+                }
+                <li>
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@Model.Lots.TotalPages"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default @nextDisabled">
+                        Last
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

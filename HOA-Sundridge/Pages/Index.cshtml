@@ -1,0 +1,358 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["PageName"] = "Dashboard";
+    ViewData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div class="row">
+    @if (TempData["MessageStatus"] != null) {
+        <div class="col-md-12">
+            <div class="box box-success" data-widget="box-widget">
+                <div class="box-header">
+                    <div class="box-tools">
+                        <button class="btn btn-box-tool" data-widget="remove" data-toggle="tooltip" title="Remove"><i class="fa fa-times"></i></button>
+                    </div>
+                    @TempData["MessageStatus"]
+                </div>
+            </div>
+        </div>
+    }
+    <div class="col-md-6">
+        <div class="box box-default owner-info" id="owner-info-box">
+            <form method="post" id="owner-info">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" name="id" asp-for="@Model.Owner.OwnerID" />
+
+                <div class="box-header with-border" id="owner-info-header">
+                    <h3 class="box-title">Information</h3>
+                    <a href="#" class="edit-owner-info"><i class="far fa-edit pull-right"></i></a>
+                </div>
+
+                <label asp-for="@Model.Owner.FirstName"></label>
+                <input asp-for="@Model.Owner.FirstName" class="owner-info-input no-border" readonly />
+
+                <label asp-for="@Model.Owner.LastName"></label>
+                <input asp-for="@Model.Owner.LastName" class="owner-info-input  no-border" readonly />
+
+                <label asp-for="@Model.Owner.Birthday"></label>
+                <input asp-for="@Model.Owner.Birthday" class="owner-info-input no-border" readonly />
+
+                <label asp-for="@Model.Owner.Occupation"></label>
+                <input asp-for="@Model.Owner.Occupation" class="owner-info-input no-border" readonly />
+
+                <label asp-for="@Model.Owner.CoOwner"></label>
+                <input value="@ViewData["CoOwner"]" name="coowner" class="owner-info-input no-border" readonly />
+                <div style="clear: both"></div>
+
+                <p><strong>-- Mailing Address --</strong></p>
+                <input type="hidden" asp-for="@Model.Owner.Address.AddressID" value="@Model.Owner.Address.AddressID" />
+                <label asp-for="@Model.Owner.Address.StreetAddress"></label>
+                <input asp-for="@Model.Owner.Address.StreetAddress" class="owner-info-input no-border" readonly />
+
+                <div class="form-group city-state">
+                    <label asp-for="@Model.Owner.Address.City"></label>
+                    <input asp-for="@Model.Owner.Address.City" class="owner-info-input no-border" readonly />
+
+                    <label asp-for="@Model.Owner.Address.State"></label>
+                    <select style="margin-left: 5px" class="owner-info-select no-border" asp-for="@Model.Owner.Address.State" asp-items="ViewBag.State" disabled></select>
+                </div>
+
+                <label asp-for="@Model.Owner.Address.Zip"></label>
+                <input asp-for="@Model.Owner.Address.Zip" class="owner-info-input  no-border" readonly />
+                <div style="clear: both"></div>
+
+                <p><strong>-- Contact --</strong></p>
+                <div style="clear: both"></div>
+                @foreach (var contact in Model.Owner.OwnerContactType) {
+                    if (contact.ContactType.Value.Contains("Phone") || contact.ContactType.Value.Contains("Fax")) {
+                        <label> @Html.DisplayFor(model => contact.ContactType.Value)</label>
+                        <input asp-for="@contact.ContactValue" value="@Extensions.FormatPhone(contact.ContactValue)" name="@contact.ContactType.Value.Replace(" ", "").ToLower()" class="owner-info-input  no-border" readonly />
+                        <div style="clear: both"></div>
+                    }
+                    else {
+                        <label> @Html.DisplayFor(model => contact.ContactType.Value)</label>
+                        <input asp-for="@contact.ContactValue" name="@contact.ContactType.Value.Replace(" ", "").ToLower()" class="owner-info-input  no-border" readonly />
+                        <div style="clear: both"></div>
+                    }
+                }
+                <div style="clear: both"></div>
+
+                <p><strong>-- In Case of Emergency --</strong></p>
+                <div style="clear: both"></div>
+
+                <label>Name </label>
+                <input asp-for="@Model.Owner.EmergencyContactName" class="owner-info-input  no-border" readonly />
+
+                <label> Phone</label>
+                <input asp-for="@Model.Owner.EmergencyContactPhone" value="@Extensions.FormatPhone(Model.Owner.EmergencyContactPhone)" class="owner-info-input  no-border" readonly />
+                <div style="clear: both"></div>
+                <div class="form-group">
+                    <input type="submit" value="Save" class="btn btn-accent owner-info-save" style="display: none" />
+                </div>
+                <br />
+                <div style="clear: both"></div>
+            </form>
+        </div>
+    </div> <!--end  owner info col-md-6 -->
+
+    <div class="col-md-6">
+        <div class="box box-default owner-balance" id="owner-balance">
+            <div class="box-header with-border">
+                <h3 class="box-title">Current Balance</h3>
+            </div>
+            <div class="text-center">
+                @if (Model.Balance == "$0.00") {
+                    <h3><strong>You have nothing due</strong></h3>
+                }
+                else {
+                    <h2 id="current-balance"> @Html.DisplayFor(modelItem => Model.Balance)</h2>
+                    <p class="text-danger"><strong>Reminder that all HOA Annual Fees are due March 31, 2018</strong></p>
+                    <div class="pay-now">
+                        <a href="https://www.paypal.com/us/home" target="_blank">Pay Now With <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/PayPal_logo.svg/2000px-PayPal_logo.svg.png" /></a> <!--TODO: Link out to Paypal-->
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="box box-default owner-lots" id="owner-lots">
+            <div class="box-header with-border">
+                <h3 class="box-title">Lots</h3>
+            </div>
+            @if (Model.Lots != null && Model.Lots.Count > 0) {
+
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Lot #</th>
+                            <th>Inventory</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var lot in Model.Lots) {
+                            <tr>
+
+                                <td><a asp-page="Owner/LotDetail" asp-route-id="@lot.LotID">#@Html.DisplayFor(modelItem => lot.LotNumber)</a></td>
+                                <td>
+                                    @if (lot.LotInventory.Count > 0) {
+                                        foreach (var item in lot.LotInventory) {
+                                            @Html.DisplayFor(modelItem => item.Inventory.Description)
+                                            if (!item.Equals(lot.LotInventory.Last())) {
+                                                <span>, </span>
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        <p>No lot inventory to show</p>
+                                    }
+                                </td>
+                            </tr>
+
+                        }
+                    </tbody>
+                </table>
+            }
+            else { <h3 class="text-center"><strong>No assigned lots to show</strong></h3>}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="box box-default owner-keys" id="owner-keys">
+            <div class="box-header with-border">
+                <h3 class="box-title">Keys</h3>
+            </div>
+
+            @if (Model.KeyHistories != null & Model.KeyHistories.Count > 0) {
+                <table class="table table-hover owner-keys-table">
+                    <thead>
+                        <tr>
+                            <th>Serial Number</th>
+                            <th>Date Issued</th>
+                            <th>Date Returned</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var key in Model.KeyHistories) {
+
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => key.Key.SerialNumber)</td>
+                                <td>@Html.DisplayFor(modelItem => key.DateIssued)</td>
+                                <td>@Html.DisplayFor(modelItem => key.DateReturned)</td>
+                                @if (key.Status != null) {
+                                    if (key.Status.Equals("Active")) {
+                                        <td><span class="badge badge-success"> @Html.DisplayFor(modelItem => key.Status)</span></td>
+                                    }
+                                    else if (key.Status.Equals("Lost")) {
+                                        <td><span class="badge badge-danger">@Html.DisplayFor(modelItem => key.Status)</span></td>
+                                    }
+                                    else if (key.Status.Equals("Returned")) {
+                                        <td><span class="badge badge-warning">@Html.DisplayFor(modelItem => key.Status)</span></td>
+                                    }
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else { <h3 class="text-center"><strong>No key history to show</strong></h3>}
+        </div>
+    </div>
+    <div class="col-md-5 col-sm-12">
+        <div class="box box-default owner-complaint" id="owner-complaint">
+            <div class="box-header with-border">
+                <h3 class="box-title">Notice Something in the Community?</h3>
+            </div>
+            <p>
+                <a class="btn btn-accent btn-report report" data-toggle="modal" data-target="#reportViolation" data-id="@Model.Owner.OwnerID" href="#">
+                    <i class="fas fa-file-alt"></i>Report a Rule Violation
+                </a> <br />
+                <a class="btn btn-accent btn-report report" data-toggle="modal" data-target="#reportMaint" data-id="@Model.Owner.OwnerID" href="#">
+                    <i class="fas fa-wrench"></i>Common Area Maintenance Request
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!----------Report Violation-------------->
+<div class="modal fade" id="reportViolation" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Report a Rule Violation</h4>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-page-handler="violation" id="violationForm">
+                    <div class="row">
+                        <input type="hidden" class="ids" name="id" />
+                        <div class="col-md-6">
+                            <label>Name of Violator</label>
+                            <input type="text" class="form-control" id="violatorName" name="violatorName" /> <br />
+                        </div>
+                        <div class="col-md-6">
+                            <label>Lot Number of Violation</label>
+                            <input type="text" class="form-control" id="violationLot" name="violationLot" /> <br />
+                        </div>
+                    </div>
+                    <label>Please explain more <small class="text-danger">*required</small></label>
+                    <textarea class="form-control" name="violationBody" id="violationBody" rows="5"></textarea><br />
+
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" id="violationSubmit" class="btn btn-success">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------Report maintenance-------------->
+<div class="modal fade" id="reportMaint" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Report a Common Area Maintenance Request</h4>
+            </div>
+            <div class="modal-body">
+                <form asp-page-handler="maintenance" method="post" id="maintenanceForm">
+                    <input type="hidden" class="ids" name="id" />
+                    <div class="form-group">
+                        <label class="control-label">Common Area Type <small class="text-danger">*required</small></label>
+                        <select class="form-control required" name="requestAsset" asp-items="@Model.CommonAreaAssetSL">
+                            <option value="">--Select Asset--</option>
+                        </select>
+                    </div>
+                    <label>Please explain what is wrong <small class="text-danger">*required</small></label>
+                    <textarea class="form-control" name="requestBody"></textarea> <br />
+
+                    <button type="button" id="backStepMaintenance" data-dismiss="modal" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-success">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).on("click",
+            ".report",
+            function () {
+                var id = $(this).data('id');
+                $(".modal-body .ids").attr("value", id);
+
+            });
+
+        $(document).ready(function () {
+            divSameSize();
+
+            $.validator.addMethod("valueNotEquals", function (value, element, arg) {
+                return arg !== value;
+            }, "Value must not equal arg.");
+
+            $('#violationForm').validate({
+                rules: {
+                    violatorName: {
+                        required: function (element) {
+                            return $("#violationLot") == null;
+                        }
+                    },
+                    violatorLot: {
+                        required: function (element) {
+                            return $("#violatorName") == null;
+                        }
+                    },
+                    violationBody: {
+                        required: true
+                    }
+                }
+            });
+
+            $('#maintenanceForm').validate({
+                rules: {
+                    requestAsset: {
+                        required: true
+                    },
+                    requestBody: {
+                        required: true
+                    },
+                }
+            });
+        });
+
+        $(window).resize(function () {
+            divSameSize();
+        });
+
+        function divSameSize() {
+            //Match heights of boxes
+            $infoHeight = $("#owner-info").outerHeight() + 10;
+            $balanceHeight = $("#owner-balance").outerHeight();
+            $historyHeight = $infoHeight - $balanceHeight;
+            $("#owner-lots").css("height", $historyHeight);
+
+            $complaintHeight = $("#owner-keys").outerHeight();
+
+            //Create scrollable boxes
+            $("#owner-keys").css("height", $complaintHeight / 1.5);
+            $("#owner-keys").css("overflow-y", "scroll");
+
+            $("#owner-lots").css("height", $historyHeight);
+            $("#owner-lots").css("overflow-y", "scroll");
+        }
+    </script>
+}

@@ -1,0 +1,299 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.OwnersActivity.IndexModel
+@using Microsoft.AspNetCore.Http
+
+@{ ViewData["Title"] = "Sundridge Owner Activity";
+    ViewData["PageName"] = "OwnersActivity";
+    TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default admin-owners-activity" id="admin-owners-activity">
+            <div class="box-header with-border">
+                <h3 class="box-title">Sundridge Owner Activity Archive</h3>
+            </div>
+
+            <div class="form-group search-div pull-left">
+                <div class="form-group has-feedback">
+                    <form asp-page="./Index" method="get" class="searchForm">
+                        <input type="text" name="SearchString" value="@Model.CurrentFilter" class="form-control search" id="inputValidation" placeholder="Search" />
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </form>
+                </div>
+            </div>
+            <div class="pull-right export-pdf table-top">
+                <a class="btn btn-accent" asp-page="./Create">Add Activity</a>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            Date
+                            @if (Model.CurrentSort == "date_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="date_asc"><i class="fas fa-sort-up"></i></a> }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="date_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Full Name
+                            @if (Model.CurrentSort == "name_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="name_asc"><i class="fas fa-sort-up"></i></a> }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="name_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Lot Number
+                            @if (Model.CurrentSort == "lot_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="lot_asc"><i class="fas fa-sort-up"></i></a> }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="lot_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Type
+                            @if (Model.CurrentSort == "type_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="type_asc"><i class="fas fa-sort-up"></i></a> }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="type_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Privacy Level
+                            @if (Model.CurrentSort == "privacy_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="privacy_asc"><i class="fas fa-sort-up"></i></a> }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="privacy_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Description
+                            @if (Model.CurrentSort == "description_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="description_asc"><i class="fas fa-sort-up"></i></a> }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="description_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th colspan="2"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var history in Model.OwnerHistory) {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => history.Date)</td>
+                            <td><a asp-page="../../Owner/Profile/" asp-route-id="@history.Owner?.OwnerID">@Html.DisplayFor(modelItem => history.Owner.FullName)</a></td>
+                            @if (history.Lot != null) {
+                                <td><a asp-page="../../Owner/LotDetail" asp-route-id="@history.Lot.LotID">#@Html.DisplayFor(modelItem => history.Lot.LotNumber)</a></td>
+                            }
+                            else {
+                                <td></td>
+                            }
+                            <td>@Html.DisplayFor(modelItem => history.HistoryType.Description)</td>
+                            <td>@Html.DisplayFor(modelItem => history.PrivacyLevel)</td>
+
+                            <td class="description">
+                                <div class="flex-parent">
+                                    <div class="flex-child truncate">
+                                        <span>@Html.DisplayFor(modelItem => history.Description)</span>
+                                    </div>
+                                    <a id="moreInfo" class="moreDesc hidden" data-desc="@history.Description" data-toggle="modal" data-target="#moreInfoModal">more</a>
+                                </div>
+                            </td>
+                            <td data-toggle="tooltip" title="Edit Activity"><a asp-page="./Edit" asp-route-id="@history.OwnerHistoryID"><i class="fas fa-pen"></i></a></td>
+                            <td data-toggle="tooltip" title="Delete Activity">
+                                <a id="markDeleted" data-id="@history.OwnerHistoryID" data-toggle="modal" data-target="#deleteActivity"><i class="fas fa-trash-alt"></i></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @{
+                var prevDisabled = !Model.OwnerHistory.HasPreviousPage ? "disabled" : "";
+                var nextDisabled = !Model.OwnerHistory.HasNextPage ? "disabled" : "";
+                var pageIndex = Model.OwnerHistory.PageIndex;
+            }
+            <ul class="pagination">
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="1"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @prevDisabled">
+                    First
+                </a>
+                @if (pageIndex == 1) {
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@pageIndex"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default active">
+                        @pageIndex
+                    </a>
+                    if (Model.OwnerHistory.TotalPages > 1) {
+
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(pageIndex + 1)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(pageIndex + 1)
+                        </a>
+                        if (Model.OwnerHistory.TotalPages > 2) {
+                            <a asp-page="./Index"
+                               asp-route-sortOrder="@Model.CurrentSort"
+                               asp-route-pageIndex="@(pageIndex + 2)"
+                               asp-route-currentFilter="@Model.CurrentFilter"
+                               class="btn btn-default">
+                                @(pageIndex + 2)
+                            </a>
+                        }
+                    }
+                }
+                else {
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@(pageIndex - 1)"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default">
+                        @(pageIndex - 1)
+                    </a>
+
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@pageIndex"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default active">
+                        @pageIndex
+                    </a>
+                    if (pageIndex != Model.OwnerHistory.TotalPages) {
+
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(pageIndex + 1)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(pageIndex + 1)
+                        </a>
+                    }
+                }
+
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="@Model.OwnerHistory.TotalPages"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @nextDisabled">
+                    Last
+                </a>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!----------Add new Activity Modal-------------->
+<div class="modal fade" id="addEditActivity" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Add a New Activity</h4>
+            </div>
+            <div class="modal-body">
+                <!--TODO: IF edit: Autofill input with existing data-->
+
+                <form action="/" class="modalForm" method="post">
+                    <label>Serial Number</label>
+                    <input type="text" class="form-control" id="activityDate" value="" />
+
+                    <!--TODO: create search of all owners-->
+                    <label>Owner</label>
+                    <input type="text" class="form-control" id="owner" value="" />
+
+                    <label>Lot</label>
+                    <input type="text" class="form-control" id="lot" value="" />
+
+                    <label>Type</label><br />
+                    <select id="activityType">
+                        <option value="infraction">Infraction</option>
+                        <option value="wik">WIK</option>
+                        <option value="exception">Exception</option>
+                    </select> <br />
+
+                    <label>Privacy Level</label> <br />
+                    <input type="radio" name="privacyLevel" value="public"> Public
+                    <input type="radio" name="privacyLevel" value="internal"> Internal<br>
+
+                    <label>Description</label>
+                    <input type="text" class="form-control" id="activityDesc" value="" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-accent">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------Delete owner Modal-------------->
+<div class="modal fade" id="deleteActivity" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Delete Owner</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure that you would like to delete this activity event? </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-danger" id="deleteActivityModal" asp-page="./Delete">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------More info-------------->
+<div class="modal fade" id="moreInfoModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Activity Description</h4>
+            </div>
+            <div class="modal-body">
+                <p id="details">
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).on("click", "#markDeleted",
+            function () {
+                var id = $(this).data('id');
+                var url = $("#deleteActivityModal").attr("href");
+                $("#deleteActivityModal").attr("href", url + "?id=" + id);
+            });
+
+        $(document).on("click", "#moreInfo",
+            function () {
+                var description = $(this).data('desc');
+                $(".modal-body #details").text(description);
+
+            });
+    </script>
+}

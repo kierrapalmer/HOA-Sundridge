@@ -1,0 +1,220 @@
+﻿@page
+@using HOASunridge.Models
+@using HOASunridge.Pages.Shared
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.Owners.IndexModel
+
+@{
+    //ViewData["Title"] = "Sundridge Owner Directory";
+    ViewData["Title"] = "Index";
+    ViewData["PageName"] = "Owners";
+    TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect(@Url.Content("~/User/Login"));
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default admin-owners" id="admin-owners">
+            <div class="box-header with-border">
+                <h3 class="box-title">Sundridge Owner Directory</h3>
+            </div>
+
+            <div class="form-group search-div pull-left">
+                <div class="form-group has-feedback">
+                    <form asp-page="./Index" method="get" class="searchForm">
+                        <input type="text" name="SearchString" value="@Model.CurrentFilter" class="form-control search" id="inputValidation" placeholder="Search" />
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </form>
+                </div>
+            </div>
+            <div class="pull-right export-pdf table-top">
+                <a class="btn btn-accent" asp-page="./Create">Add Owner</a>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            First Name
+                            @if (Model.CurrentSort == "firstName_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="firstName_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="firstName_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Last Name
+                            @if (Model.CurrentSort == "lastName_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="lastName_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="lastName_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Address
+                            @if (Model.CurrentSort == "address_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="address_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="address_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Phone
+                            @if (Model.CurrentSort == "phone_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="phone_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="phone_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Email
+                            @if (Model.CurrentSort == "email_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="email_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="email_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th colspan="3"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var owners in Model.Owners) {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => owners.FirstName)</td>
+                            <td>@Html.DisplayFor(modelItem => owners.LastName)</td>
+                            <td>
+                                @Html.DisplayFor(modelItem => owners.Address.StreetAddress) <br />
+                                @Html.DisplayFor(modelItem => owners.Address.HalfAddress)
+                            </td>
+
+                            @if (owners.OwnerContactType != null) {
+                                if (owners.OwnerContactType.Count > 1) {
+                                    foreach (var contactItem in owners.OwnerContactType) {
+                                        if (contactItem.ContactType.Value == "Primary Phone") {
+                                            <td>
+                                                @Extensions.FormatPhone(contactItem.ContactValue)
+                                            </td>
+                                        }
+                                        else if (contactItem.ContactType.Value == "Email") {
+                                            <td>@contactItem.ContactValue</td>
+                                        }
+                                    }
+                                }
+                                else if (owners.OwnerContactType.Count == 1) {
+                                    foreach (var contactItem in owners.OwnerContactType) {
+                                        if (contactItem.ContactType.Value == "Primary Phone") {
+                                            <td>
+                                                @Extensions.FormatPhone(contactItem.ContactValue)
+                                            </td>
+                                            <td></td>
+                                        }
+                                        else if (contactItem.ContactType.Value == "Email") {
+                                            <td></td>
+                                            <td>@contactItem.ContactValue</td>
+                                        }
+                                    }
+                                }
+                                else {
+                                    <td></td>
+                                    <td></td>
+                                }
+                            }
+                            else {
+                                <td></td>
+                                <td></td>
+                            }
+                            <td data-toggle="tooltip" title="View Profile"><a asp-page="/Owner/Profile" asp-route-id="@owners.OwnerID"><i class="fas fa-user"></i></a></td>
+                            @*Filter out owners activity to specified owner*@
+                            <td data-toggle="tooltip" title="Owner Activity"><a asp-page="/Admin/OwnersActivity/Index" asp-route-SearchString="@owners.FullName"><i class="fa fas fa-history"></i></a></td>
+                            <td data-toggle="tooltip" title="Edit Owner"><a asp-page="./Edit" asp-route-id="@owners.OwnerID"><i class="fas fa-pen"></i></a></td>
+                            <td data-toggle="tooltip" title="Delete Owner">
+                                <a id="markDeleted" data-id="@owners.OwnerID" data-toggle="modal" data-target="#deleteOwner"><i class="fas fa-trash-alt"></i></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @{
+                var prevDisabled = !Model.Owners.HasPreviousPage ? "disabled" : "";
+                var nextDisabled = !Model.Owners.HasNextPage ? "disabled" : "";
+                var pageIndex = Model.Owners.PageIndex;
+            }
+
+            <ul class="pagination">
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="1"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @prevDisabled">
+                    First
+                </a>
+                @for (int i = 1; i <= Model.Owners.TotalPages; i++) {
+                    if (pageIndex == i) {
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(i)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default active">
+                            @(i)
+                        </a>
+                    }
+                    else {
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(i)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(i)
+                        </a>
+                    }
+                }
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="@Model.Owners.TotalPages"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @nextDisabled">
+                    Last
+                </a>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!----------Delete Keys Modal-------------->
+<div class="modal fade" id="deleteOwner" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Delete Owner</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure that you would like to delete this Owner? </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-danger" id="deleteOwnerModal" asp-page="./Delete">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).on("click", "#markDeleted",
+            function () {
+                var id = $(this).data('id');
+                var url = $("#deleteOwnerModal").attr("href");
+                $("#deleteOwnerModal").attr("href", url + "?id=" + id);
+            });
+    </script>
+}

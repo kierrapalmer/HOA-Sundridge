@@ -1,0 +1,111 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@using Newtonsoft.Json
+@model HOASunridge.Pages.Admin.OwnersActivity.EditModel
+
+@{ ViewData["Title"] = "Edit";
+    ViewData["PageName"] = "OwnersActivity";
+    TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div class="box box-default edit">
+    <div class="box-header with-border">
+        <h3 class="box-title">Edit a Owner History Event</h3>
+    </div>
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="OwnerHistory.OwnerHistoryID" />
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Owner</label>
+                    <small class="text-danger">*Required</small>
+                    <input type="text" id="owner1" name="ownerName" value="@Model.OwnerHistory.Owner?.FullName" class="form-control" />
+                    @Html.ValidationMessage("Account", new { @style = "color: #d9534f" })
+                </div>
+            </div>
+            <div class="col-md-6">
+
+                <div class="form-group">
+                    <label>Lot</label>
+                    @if (Model.OwnerHistory.Lot != null) {
+                        <input type="text" id="lot1" name="lotNumber" value="@Model.OwnerHistory.Lot.LotNumber" class="form-control" />
+                    }
+                    else {
+                        <input type="text" id="lot1" name="lotNumber" class="form-control" />
+                    }
+                    @Html.ValidationMessage("LotNumber", new { @style = "color: #d9534f" })
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="OwnerHistory.Date" class="control-label"></label>
+            <small class="text-danger">*Required</small>
+            <input asp-for="OwnerHistory.Date" class="form-control" />
+            <span asp-validation-for="OwnerHistory.Date" class="text-danger"></span>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="OwnerHistory.HistoryTypeID" class="control-label"></label>
+                    <small class="text-danger">*Required</small>
+                    <select asp-for="OwnerHistory.HistoryTypeID" class="form-control" asp-items="ViewBag.Types">
+                        <option value="">--Select Type--</option>
+                    </select>
+                    <span asp-validation-for="OwnerHistory.HistoryTypeID" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+
+                <div class="form-group">
+                    <label asp-for="OwnerHistory.PrivacyLevel" class="control-label"></label>
+                    <small class="text-danger">*Required</small>
+                    <select asp-for="OwnerHistory.PrivacyLevel" class="form-control" asp-items="ViewBag.PrivacyLevel">
+                        <option value="">--Select Privacy Level--</option>
+                    </select>
+                    <span asp-validation-for="OwnerHistory.PrivacyLevel" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="OwnerHistory.Description" class="control-label"></label>
+            <textarea asp-for="OwnerHistory.Description" class="form-control" rows="6"></textarea>
+            <span asp-validation-for="OwnerHistory.Description" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <a asp-page="Index" class="btn btn-default">Cancel</a>
+            <input type="submit" value="Save" class="btn btn-accent pull-right" />
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+    var ownerList = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Owners));
+    $("#owner1").autocomplete({
+        minLength: 0,
+        source: ownerList,
+        select: function (event, ui) {
+            $("#owner1").val(ui.item.Name);
+        }
+    });
+
+    var lotList = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Lots));
+    $("#lot1").autocomplete({
+        minLength: 0,
+        source: lotList,
+        select: function (event, ui) {
+            $("#lot1").val(ui.item.Name);
+        }
+    });
+    </script>
+}

@@ -1,0 +1,277 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model KeysModel
+@{ ViewData["Title"] = "Sundridge Key Directory";
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "")
+{
+    Response.Redirect(@Url.Content("~/User/Login"));
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default admin-owners" id="admin-owners">
+            <div class="box-header with-border">
+                <h3 class="box-title">Sundridge Key Directory</h3>
+            </div>
+
+            <div class="form-group search-div pull-left">
+                <div class="form-group has-feedback">
+                    <input type="text" class="form-control search" id="inputValidation" placeholder="Search" />
+                    <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                </div>
+            </div>
+            <div class="pull-right export-pdf table-top">
+                <a class="btn btn-accent" data-toggle="modal" data-target="#addEditKey" href="#">Assign a New Key</a>
+                <a class="btn btn-secondary-dark" id="print-lots" href="#">Export PDF</a>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            Serial Number
+                            <i class="fa fa-sort float-right"></i>
+                        </th>
+                        <th>
+                            Date Issued
+                            <i class="fa fa-sort float-right"></i>
+                        </th>
+                        <th>
+                            Date Returned
+                            <i class="fa fa-sort float-right"></i>
+                        </th>
+                        <th>
+                            Status
+                            <i class="fa fa-sort float-right"></i>
+                        </th>
+                        <th>
+                            Amount
+                            <i class="fa fa-sort float-right"></i>
+                        </th>
+                        <th>
+                            Current Owner
+                            <i class="fa fa-sort float-right"></i>
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var key in Model.Keys)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => key.SerialNumber)</td>
+                            <td>@Html.DisplayFor(modelItem => key.KeyHistory.DateIssued)</td>
+                            <td>@Html.DisplayFor(modelItem => key.KeyHistory.DateReturned)</td>
+                            <td>@Html.DisplayFor(modelItem => key.KeyHistory.Status)</td>
+                            <td>@Html.DisplayFor(modelItem => key.KeyHistory.PaidAmount)</td>
+                            <td>@Html.DisplayFor(modelItem => key.KeyHistory.Owner.FullName)</td>
+                            <td data-toggle="tooltip" title="mark are returned"><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-warning"></i></a></td>
+                            <td data-toggle="tooltip" title="mark are lost"><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-danger"></i></a></td>
+                            <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                        </tr>
+                    }
+                    <!--<tr>
+                        <td>7570</td>
+                        <td>06/11/15</td>
+                        <td>11/27/13</td>
+                        <td><span class="badge badge-success">Active</span> </td>
+                        <td>$0 </td>
+                        <td><a asp-page="/Owner/Profile">Richard Fry</a></td>
+                        <td data-toggle="tooltip" title="mark are returned"><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-warning"></i></a></td>
+                        <td data-toggle="tooltip" title="mark are lost"><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-danger"></i></a></td>
+                        <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td>9652</td>
+                        <td>08/31/14</td>
+                        <td></td>
+                        <td><span class="badge badge-success">Active </span></td>
+                        <td> $20</td>
+                        <td><a href="#">Priscilla Cook</a></td>
+                        <td data-toggle="tooltip" title="mark are returned"><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-warning"></i></a></td>
+                        <td data-toggle="tooltip" title="mark are lost"><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-danger"></i></a></td>
+                        <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td>2116</td>
+                        <td>01/07/18</td>
+                        <td></td>
+                        <td><span class="badge badge-success">Active </span></td>
+                        <td>$0 </td>
+                        <td><a href="#">Medge Benson</a></td>
+                        <td data-toggle="tooltip" title="mark are returned"><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-warning"></i></a></td>
+                        <td data-toggle="tooltip" title="mark are lost"><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-danger"></i></a></td>
+                        <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td>5412</td>
+                        <td>01/24/08</td>
+                        <td>08/14/17</td>
+                        <td><span class="badge badge-warning"> Not Assigned </span>
+                        <td>$0 </td>
+                        <td><a href="#"></a></td>
+                        <td data-toggle="tooltip" title="mark are returned"><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-secondary"></i></a></td>
+                        <td data-toggle="tooltip" title="mark are lost"><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-secondary"></i></a></td>
+                        <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td>2950</td>
+                        <td>03/07/18</td>
+                        <td></td>
+                        <td><span class="badge badge-danger">Lost </span></td>
+                        <td> $20</td>
+                        <td><a href="#">Tate Watts</a></td>
+                        <td data-toggle="tooltip" title="mark are returned"><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-warning"></i></a></td>
+                        <td data-toggle="tooltip" title="mark are lost"><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-secondary"></i></a></td>
+                        <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td>9917</td>
+                        <td>02/14/14</td>
+                        <td></td>
+                        <td><span class="badge badge-success">Active </span></td>
+                        <td> $20</td>
+                        <td><a href="#">Hoyt Lindsay</a></td>
+                        <td data-toggle="tooltip" title="mark are returned"><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-warning"></i></a></td>
+                        <td data-toggle="tooltip" title="mark are lost"><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-danger"></i></a></td>
+                        <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td>6995</td>
+                        <td>08/04/06</td>
+                        <td></td>
+                        <td><span class="badge badge-success">Active</span> </td>
+                        <td> $20</td>
+                        <td><a href="#">Holly Montgomery</a></td>
+                        <td><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-warning"></i></a></td>
+                        <td><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-danger"></i></a></td>
+                        <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td>8176</td>
+                        <td>10/16/13</td>
+                        <td>10/14/09</td>
+                        <td> <span class="badge badge-warning">Not Assigned</span> </td>
+                        <td>$0 </td>
+                        <td><a href="#"></a></td>
+                        <td><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-secondary"></i></a></td>
+                        <td><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-secondary"></i></a></td>
+                        <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td>7823</td>
+                        <td>08/02/18</td>
+                        <td>02/10/14</td>
+                        <td> <span class="badge badge-warning">Not Assigned </span></td>
+                        <td>$0 </td>
+                        <td><a href="#"></a></td>
+                        <td><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-secondary"></i></a></td>
+                        <td><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-secondary"></i></a></td>
+                        <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                    </tr>
+                    <tr>
+                        <td>3785</td>
+                        <td>09/27/06</td>
+                        <td></td>
+                        <td><span class="badge badge-danger">Lost </span> </td>
+                        <td>$0 </td>
+                        <td><a href="#">Shaeleigh Rivera</a></td>
+                        <td><a href="#" data-toggle="modal" data-target="#markReturned"><i class="fas fa-sign-in-alt icon-warning"></i></a></td>
+                        <td><a href="#" data-toggle="modal" data-target="#markLost"><i class="fas fa-exclamation icon-secondary"></i></a></td>
+                        <td data-toggle="tooltip" title="edit key"><a href="#" data-toggle="modal" data-target="#addEditKey"><i class="fas fa-pen"></i></a></td>
+                    </tr>-->
+                </tbody>
+            </table>
+
+            <ul class="pagination">
+                <li><a href="#">Prev</a></li>
+                <li><a href="#" class="active">1</a></li>
+                <li><a href="#">2</a></li>
+                <li><a href="#">3</a></li>
+                <li><a href="#">4</a></li>
+                <li><a href="#">5</a></li>
+                <li><a href="#">Next</a></li>
+            </ul>
+            <br /><br />
+        </div>
+    </div>
+</div>
+
+<!----------Add new Key Modal-------------->
+<div class="modal fade" id="addEditKey" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Add a new key</h4>
+            </div>
+            <div class="modal-body">
+                <!--TODO: IF edit: Autofill input with existing data-->
+
+                <form action="/" class="modalForm" method="post">
+                    <label>Serial Number</label>
+                    <input type="text" class="form-control" id="serialNumber" value="" />
+
+                    <label>Date Issued</label>
+                    <input type="text" class="form-control" id="dateIssued" value="" />
+
+                    <label>Date Returned</label>
+                    <input type="text" class="form-control" id="dateReturned" value="" />
+
+                    <label>Status</label>
+                    <input type="text" class="form-control" id="status" value="" />
+
+                    <label>Amount</label>
+                    <input type="text" class="form-control" id="amount" value="" />
+
+                    <label>Current Owner</label>
+                    <input type="text" class="form-control" id="keyOwner" value="" /><!--TODO: create search of all owners-->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-accent">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------Mark key as lost Modal-------------->
+<div class="modal fade" id="markLost" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Mark Key as Lost</h4>
+            </div>
+            <div class="modal-body">
+                <p>Would you like to mark this key as lost? </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-accent">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------Mark key as returned Modal-------------->
+<div class="modal fade" id="markReturned" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Mark Key as Returned</h4>
+            </div>
+            <div class="modal-body">
+                <p>Would you like to mark this key as returned? </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

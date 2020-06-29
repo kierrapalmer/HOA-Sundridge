@@ -1,0 +1,63 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model BillingModel
+@{
+    ViewData["Title"] = "Billing History";
+    ViewData["PageName"] = "Billing";
+    TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+<div class="box box-default owner-past-payments">
+    <div class="box-header with-border">
+        <h3 class="box-title">Open Dues</h3>
+        <p class="text-danger pull-right"><strong>Current Balance: @Model.Balance</strong></p>
+    </div>
+    <div>
+
+        @if (Model.TransactionOpen != null) {
+
+            foreach (var open in Model.TransactionOpen) {
+                if (open.IsArchive == false) {
+                    <div>
+                        <h4>
+                            <span class="pull-right payed-amount">@Html.DisplayFor(modelItem => open.Amount)</span>
+                            <strong>Added on @Html.DisplayFor(modelItem => open.DateAdded)</strong>
+                        </h4>
+                        <p>@Html.DisplayFor(modelItem => open.Description)</p>
+                    </div>
+                    <hr />
+                }
+            }
+            <div class="pay-now billing">
+                Pay Now With <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/PayPal_logo.svg/2000px-PayPal_logo.svg.png" />  <!--TODO: Link out to Paypal-->
+            </div>
+            <br />
+        }
+        else {
+            <h4>You currently have no open dues.</h4>
+        }
+    </div>
+</div>
+<div class="box box-default owner-past-payments">
+    <div class="box-header with-border">
+        <h3 class="box-title">Past Payments</h3>
+    </div>
+    <div>
+        @foreach (var past in Model.TransactionPast) {
+            if (past.IsArchive == false) {
+                <div>
+                    <h4>
+                        <span class="pull-right payed-amount">$@Html.DisplayFor(modelItem => past.Amount)</span>
+                        <strong> Paid on @Html.DisplayFor(modelItem => past.DatePaid)</strong>
+                    </h4>
+                    <p>@Html.DisplayFor(modelItem => past.Description)</p>
+                </div>
+                <hr />
+            }
+        }
+    </div>
+</div>

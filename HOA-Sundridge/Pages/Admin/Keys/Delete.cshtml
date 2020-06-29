@@ -1,0 +1,36 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.Keys.DeleteModel
+
+@{ ViewData["Title"] = "Delete";
+                ViewData["PageName"] = "Keys";
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div>
+
+    <form method="post" id="deleteKeyForm">
+        <input type="hidden" asp-for="Key.KeyID" />
+        <input type="hidden" asp-for="Key.KeyHistory.KeyHistoryID" />
+        <input type="hidden" asp-for="Key.KeyHistory.OwnerID" />
+        <input type="hidden" asp-for="Key.SerialNumber" />
+        <p id="message"></p>
+    </form>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            $('#deleteKeyForm').submit();
+        });
+
+        setTimeout(displayMessage, 3000);
+        function displayMessage() {
+            document.getElementById("message").innerHTML = 'If you are not redirected soon, please click <a asp-page="./Index" onclick="form.submit()">here </a>';
+        }
+    </script>
+}

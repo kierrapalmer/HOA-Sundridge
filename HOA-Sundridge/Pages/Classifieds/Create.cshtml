@@ -1,0 +1,89 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@using System.Linq
+@using Microsoft.AspNetCore.Http.Extensions
+
+@model HOASunridge.Pages.Classifieds.CreateModel
+
+@{ ViewData["Title"] = "Post New Classified Ad";
+                ViewData["PageName"] = "Classifieds";
+                TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect(@Url.Content("~/User/Login"));
+
+}
+
+<div class="box box-default classifieds">
+    <div class="box-header with-border">
+        <h3 class="box-title">Post a new Classified Ad</h3>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="row">
+            <div class="col-md-7">
+
+                <div class="form-group">
+                    <label asp-for="ClassifiedListing.ItemName" class="control-label"></label> <small class="text-danger">*required</small>
+                    <input asp-for="ClassifiedListing.ItemName" class="form-control" />
+                    <span asp-validation-for="ClassifiedListing.ItemName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-5">
+
+                <div class="form-group">
+                    <label asp-for="ClassifiedListing.Price" class="control-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-addon">$</span>
+                        <input asp-for="ClassifiedListing.Price" value="0.00" class="form-control" />
+                    </div>
+                    <span asp-validation-for="ClassifiedListing.Price" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="ClassifiedListing.ClassifiedCategory.Description" class="control-label"></label> <small class="text-danger">*required</small>
+            <select asp-for="ClassifiedListing.ClassifiedCategoryID" class="form-control" asp-items="@Model.CategorySelectList">
+                <option value="">--Select Category--</option>
+            </select>
+            <span asp-validation-for="ClassifiedListing.ClassifiedCategory.Description" class="text-danger"></span>
+        </div>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="ClassifiedListing.Description" class="control-label"></label>
+            <textarea rows="8" asp-for="ClassifiedListing.Description" class="form-control"></textarea>
+            <span asp-validation-for="ClassifiedListing.Description" class="text-danger"></span>
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="form-group">
+            <label asp-for="ClassifiedListing.Files" class="control-label"></label>
+            <small>*Max 10 images(.JPEG, &nbsp; .PNG)</small>
+            <input type="file" asp-for="ClassifiedListing.Files" multiple name="formFiles" class="form-control" />
+            @Html.ValidationMessage("file", new { @style = "color: red" })
+        </div>
+
+        @* TODO: Autofill with logged in user data *@
+        <div class="form-group">
+            <label asp-for="ClassifiedListing.Email" class="control-label"></label>
+            <input asp-for="ClassifiedListing.Email" value="@Model.Owner.OwnerContactType.FirstOrDefault(x => x.ContactType.Value == "Email")?.ContactValue" class="form-control" />
+            <span asp-validation-for="ClassifiedListing.Email" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="ClassifiedListing.Phone" class="control-label"></label>
+            <input asp-for="ClassifiedListing.Phone" value="@Model.Owner.OwnerContactType.FirstOrDefault(x => x.ContactType.Value == "Primary Phone")?.ContactValue" class="form-control" />
+            <span asp-validation-for="ClassifiedListing.Phone" class="text-danger"></span>
+        </div>
+
+        <input type="button" onclick="window.history.back()" class="btn btn-default" value="Cancel">
+        <input type="submit" class="btn btn-accent pull-right" value="Create">
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

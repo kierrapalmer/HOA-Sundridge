@@ -1,0 +1,179 @@
+﻿@page
+@using HOASunridge.Pages.Shared
+@using Microsoft.AspNetCore.Http
+@using Newtonsoft.Json
+@model HOASunridge.Pages.Admin.Owners.EditModel
+
+@{ ViewData["Title"] = "Edit";
+    ViewData["PageName"] = "Owners";
+    TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect(@Url.Content("~/User/Login"));
+}
+
+<div class="box box-default edit">
+    <div class="box-header with-border">
+        <h3 class="box-title">Edit Owner</h3>
+    </div>
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Owner.OwnerID" />
+        <div class="row">
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label asp-for="Owner.FirstName" class="control-label"></label>
+                    <small class="text-danger">*Required</small>
+                    <input asp-for="Owner.FirstName" class="form-control" />
+                    <span asp-validation-for="Owner.FirstName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label asp-for="Owner.LastName" class="control-label"></label>
+                    <small class="text-danger">*Required</small>
+                    <input asp-for="Owner.LastName" class="form-control" />
+                    <span asp-validation-for="Owner.LastName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <div class="checkbox">
+                        <br />
+                        <input type="checkbox" value="1" name="isAdmin" @(Model.Owner.User?.UserType == "Admin" ? "checked" : "") />Admin
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label asp-for="Owner.Birthday" class="control-label"></label>
+                    <input asp-for="Owner.Birthday" class="form-control" />
+                    <span asp-validation-for="Owner.Birthday" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label asp-for="Owner.Occupation" class="control-label"></label>
+                    <input asp-for="Owner.Occupation" class="form-control" />
+                    <span asp-validation-for="Owner.Occupation" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label class="control-label">Secondary Owner</label>
+                    <input name="coowner" id="coowner" asp-for="@ViewData["CoOwner"]" class="form-control" />
+                </div>
+            </div>
+        </div>
+        <label class="control-label" style="margin-left: 15px;">--Contact Information--</label><br />
+        <div class="row">
+            @if (Model.AssignedOwnerContacts != null) {
+                foreach (var contact in Model.AssignedOwnerContacts) {
+                    <div class="col-md-6">
+
+                        <label class="control-label">@contact.ContactTypeValue</label>
+                        @if (contact.ContactTypeValue == "Primary Phone") {
+                            <small class="text-danger">*required</small>
+                            <input type="text" name="selectedContacts" class="form-control"
+                                   value="@Extensions.FormatPhone(contact.ContactValue)" />
+                        }
+                        else if (contact.ContactTypeValue == "Email") {
+                            <small class="text-danger">*required</small>
+                            <input type="text" name="selectedContacts" class="form-control"
+                                   value="@contact.ContactValue" />
+                        }
+                        else if (contact.ContactTypeValue == "Secondary Phone" || contact.ContactTypeValue == "Fax") {
+                            <input type="text" name="selectedContacts" class="form-control"
+                                   value="@Extensions.FormatPhone(contact.ContactValue)" />
+                        }
+
+                        else {
+                            <input type="text" name="selectedContacts" class="form-control"
+                                   value="@contact.ContactValue" />
+                        }
+                    </div>
+                }
+                @Html.ValidationMessage("Contacts", new { @style = "color: red" })
+            }
+        </div>
+        <div class="row">
+            <label class="control-label" style="margin-left: 15px;">--Mailing Address--</label><br />
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label asp-for="Owner.Address.StreetAddress" class="control-label"></label>
+                    <small class="text-danger">*Required</small>
+                    <input asp-for="Owner.Address.StreetAddress" class="form-control" />
+                    <span asp-validation-for="Owner.Address.StreetAddress" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label asp-for="Owner.Address.City" class="control-label"></label>
+                    <small class="text-danger">*Required</small>
+                    <input asp-for="Owner.Address.City" class="form-control" />
+                    <span asp-validation-for="Owner.Address.City" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label asp-for="Owner.Address.State"></label>
+                    <small class="text-danger">*Required</small><br />
+                    <select class="form-control" asp-for="Owner.Address.State" asp-items=@ViewBag.State>
+                        <option value="">Choose your state</option>
+                    </select>
+                    <span asp-validation-for="Owner.Address.State" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label asp-for="Owner.Address.Zip" class="control-label"></label>
+                    <small class="text-danger">*Required</small>
+                    <input asp-for="Owner.Address.Zip" class="form-control" />
+                    <span asp-validation-for="Owner.Address.Zip" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <label class="control-label" style="margin-left: 15px;">--Emergency Contact Information--</label><br />
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Owner.EmergencyContactName" class="control-label"></label>
+                    <input asp-for="Owner.EmergencyContactName" class="form-control" />
+                    <span asp-validation-for="Owner.EmergencyContactName" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Owner.EmergencyContactPhone" class="control-label"></label>
+                    <input asp-for="Owner.EmergencyContactPhone" value="@Extensions.FormatPhone(Model.Owner.EmergencyContactPhone)" class="form-control" />
+                    <span asp-validation-for="Owner.EmergencyContactPhone" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="form-group">
+            <a asp-page="Index" class="btn btn-default">Cancel</a>
+            <input id="submit" type="submit" value="Save" class="btn btn-accent pull-right" />
+        </div>
+    </form>
+</div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        var list = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Owners));
+        $("#coowner").autocomplete({
+            minLength: 0,
+            source: list,
+            select: function(event, ui) {
+                $("#coowner").val(ui.item.Name);
+            }
+        });
+    </script>
+}

@@ -1,0 +1,66 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.CommonArea.CreateModel
+
+@{ ViewData["Title"] = "Create";
+                ViewData["PageName"] = "CommonArea";
+                TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default">
+            <form method="post">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Add New Common Area Asset</h3>
+                </div>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group">
+                    <label asp-for="CommonAreaAsset.AssetName" class="control-label"></label>
+                    <small class="text-danger">*Required</small>
+                    <input asp-for="CommonAreaAsset.AssetName" class="form-control" />
+                    <span asp-validation-for="CommonAreaAsset.AssetName" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="CommonAreaAsset.Date" class="control-label"></label>
+                            <small class="text-danger">*Required</small>
+                            <input type="date" asp-for="CommonAreaAsset.Date" value="@string.Format("{0:MM/dd/yy}", Model.Today)" class="form-control" />
+                            <span asp-validation-for="CommonAreaAsset.Date" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+
+                        <div class="form-group">
+                            <label asp-for="CommonAreaAsset.PurchasePrice" class="control-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-addon">$</span>
+                                <input asp-for="CommonAreaAsset.PurchasePrice" class="form-control" value="0.00" />
+                                <span asp-validation-for="CommonAreaAsset.PurchasePrice" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="CommonAreaAsset.Description" class="control-label"></label>
+                    <textarea rows="5" asp-for="CommonAreaAsset.Description" class="form-control"> </textarea>
+                    <span asp-validation-for="CommonAreaAsset.Description" class="text-danger"></span>
+                </div>
+                <br />
+                <input type="button" onclick="window.history.back()" class="btn btn-default" value="Cancel">
+                <input type="submit" class="btn btn-accent pull-right" value="Create">
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

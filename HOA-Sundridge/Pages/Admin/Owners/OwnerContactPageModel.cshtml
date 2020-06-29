@@ -1,0 +1,14 @@
+﻿@page
+@using HOASunridge.Models
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.Owners.IndexModel
+
+@{
+                ViewData["Title"] = "Index";
+                ViewData["PageName"] = "Owners";
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect(@Url.Content("~/User/Login"));
+}

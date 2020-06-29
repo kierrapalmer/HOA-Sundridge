@@ -1,0 +1,280 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.CommonAreaAsset.IndexModel
+
+@{ ViewData["Title"] = "Index";
+                ViewData["PageName"] = "CommonArea";
+                TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default admin-maintenance" id="admin-maintenance">
+            <div class="box-header with-border">
+                <h3 class="box-title">Sundridge Common Area Assets</h3>
+            </div>
+
+            <div class="form-group search-div pull-left">
+                <div class="form-group has-feedback">
+                    <form asp-page="./Index" method="get" class="searchForm">
+                        <input type="text" name="SearchString" value="@Model.CurrentFilter" class="form-control search" id="inputValidation" placeholder="Search" />
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </form>
+                </div>
+            </div>
+            <div class="pull-right export-pdf table-top">
+                <a class="btn btn-accent" asp-page="./Create">Add Common Area Asset</a>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            Asset Name
+                            @if (@Model.CurrentSort == "name_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="name_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="name_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Date Purchased
+                            @if (@Model.CurrentSort == "date_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="date_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="date_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Purchase Cost
+                            @if (@Model.CurrentSort == "cost_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="cost_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="cost_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Status
+                            @if (@Model.CurrentSort == "status_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="status_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="status_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Description
+                        </th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.CommonAreaAsset) {
+                    <tr>
+                        <td>
+                            <a asp-page="./Maintenance/Index" asp-route-id="@item.CommonAreaAssetID">@Html.DisplayFor(modelItem => item.AssetName)</a>
+                        </td>
+
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Date)
+                        </td>
+                        <td>
+                            $ @Html.DisplayFor(modelItem => item.PurchasePrice)
+                        </td>
+                        <td>
+                            @if (item.Status == "Active")
+                            {
+                                <span class="badge badge-success"> @Html.DisplayFor(modelItem => item.Status) </span>
+                            }
+                            else if (item.Status == "Disabled")
+                            {
+                                <span class="badge badge-danger"> @Html.DisplayFor(modelItem => item.Status) </span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-accent"> @Html.DisplayFor(modelItem => item.Status) </span>
+                            }
+                        </td>
+                        <td class="description">
+                            <div class="flex-parent">
+                                <div class="flex-child truncate" id="@("desc" + item.CommonAreaAssetID)">
+                                    <span>@Html.DisplayFor(modelItem => item.Description)</span>
+                                </div>
+                                <a href="#" class="moreDesc hidden" data-toggle="modal" data-target="#moreInfo" data-id="@item.CommonAreaAssetID">more</a>
+                            </div>
+                        </td>
+
+                        <td data-toggle="tooltip" title="Add Maintenance">
+                            <a asp-page="./Maintenance/Create" asp-route-id="@item.CommonAreaAssetID"><i class="fas fa-plus"></i></a>
+                        </td>
+                        <td data-toggle="tooltip" title="Edit Asset">
+                            <a asp-page="./Edit" asp-route-id="@item.CommonAreaAssetID"><i class="fas fa-pen"></i></a>
+                        </td>
+                        <td data-toggle="tooltip" title="View Maintenance">
+                            <a asp-page="./Maintenance/Index" asp-route-searchString="@item.AssetName"><i class="fas fa-wrench"></i></a>
+                        </td>
+
+                        @if (@item.Status == "Active")
+                        {
+                            <td data-toggle="tooltip" title="Mark as Disabled">
+                                <a class="statusItem" data-toggle="modal" data-target="#changeStatusAsset" data-id="@item.CommonAreaAssetID"><i class="fas fa-times"></i></a>
+                            </td>
+                        }
+                        else if (@item.Status == "Disabled")
+                        {
+                            <td data-toggle="tooltip" title="Mark as Active">
+                                <a class="statusItem" data-toggle="modal" data-target="#changeStatusAsset" data-id="@item.CommonAreaAssetID">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                            </td>
+                        }
+                    </tr>
+                    }
+                </tbody>
+            </table>
+
+            @{
+                var prevDisabled = !Model.CommonAreaAsset.HasPreviousPage ? "disabled" : "";
+                var nextDisabled = !Model.CommonAreaAsset.HasNextPage ? "disabled" : "";
+                var pageIndex = Model.CommonAreaAsset.PageIndex;
+            }
+            <ul class="pagination">
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="1"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @prevDisabled">
+                    First
+                </a>
+                @if (pageIndex == 1) {
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@pageIndex"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default active">
+                        @pageIndex
+                    </a>
+                    if (Model.CommonAreaAsset.TotalPages > 1) {
+
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(pageIndex + 1)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(pageIndex + 1)
+                        </a>
+                        if (Model.CommonAreaAsset.TotalPages > 2) {
+                            <a asp-page="./Index"
+                               asp-route-sortOrder="@Model.CurrentSort"
+                               asp-route-pageIndex="@(pageIndex + 2)"
+                               asp-route-currentFilter="@Model.CurrentFilter"
+                               class="btn btn-default">
+                                @(pageIndex + 2)
+                            </a>
+                        }
+                    }
+                }
+                else {
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@(pageIndex - 1)"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default">
+                        @(pageIndex - 1)
+                    </a>
+
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@pageIndex"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default active">
+                        @pageIndex
+                    </a>
+                    if (pageIndex != Model.CommonAreaAsset.TotalPages) {
+
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(pageIndex + 1)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(pageIndex + 1)
+                        </a>
+                    }
+                }
+
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="@Model.CommonAreaAsset.TotalPages"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @nextDisabled">
+                    Last
+                </a>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!----------Delete owner Modal-------------->
+<div class="modal fade" id="changeStatusAsset" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Change Status of Asset</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure that you would like to change the status of this asset? </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-accent" id="changeStatus" asp-page="./ChangeStatus">Change Status</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------More info-------------->
+<div class="modal fade" id="moreInfo" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Common Area Asset Description</h4>
+            </div>
+            <div class="modal-body">
+                <p id="more">more</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).on("click",
+            ".moreDesc",
+            function () {
+                var id = $(this).data('id');
+                var text = $("#desc" + id).text();
+                $(".modal-body #more").text(text);
+
+            });
+
+        $(document).on("click", ".statusItem",
+            function () {
+                var id = $(this).data('id');
+                var url = $("#changeStatus").attr("href");
+                $("#changeStatus").attr("href", url + "?id=" + id);
+            });
+    </script>
+}

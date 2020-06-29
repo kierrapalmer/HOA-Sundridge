@@ -1,0 +1,320 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model OwnerProfileModel
+
+@{
+    ViewData["Title"] = "Owner Profile";
+    TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="box box-default edit-owner-info" id="owner-profile">
+            <div class="box-header with-border">
+                <h3 class="box-title">@Model.Owner.FullName</h3>
+
+                @if (Model.Owner.User?.UserType == "Owner") {
+                    <span class="badge badge-accent badge-profile">@Model.Owner.User.UserType</span>
+                }
+                else if (Model.Owner.User?.UserType == "Admin") {
+                    <span class="badge badge-success badge-profile">@Model.Owner.User.UserType</span>
+                }
+
+                <a href="#" class="edit-owner-info"><i class="far fa-edit pull-right"></i></a>
+            </div>
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="@Model.Owner.OwnerID" />
+                <input type="hidden" asp-for="@Model.Owner.FirstName" />
+                <input type="hidden" asp-for="@Model.Owner.LastName" />
+                <div id="profile">
+
+                    @if (Model.Owner?.OwnerContactType != null) {
+                        foreach (var contact in Model.Owner?.OwnerContactType) {
+                            if (contact.ContactType.Value.Contains("Phone") || contact.ContactType.Value.Contains("Fax")) {
+                                <label> @Html.DisplayFor(model => contact.ContactType.Value)</label>
+                                <input asp-for="@contact.ContactValue" value="@Extensions.FormatPhone(contact.ContactValue)" name="@contact.ContactType.Value.Replace(" ", "").ToLower()" class="owner-info-input  no-border" readonly />
+                                <div style="clear: both"></div>
+                            }
+                            else {
+                                <label> @Html.DisplayFor(model => contact.ContactType.Value)</label>
+                                <input asp-for="@contact.ContactValue" name="@contact.ContactType.Value.Replace(" ", "").ToLower()" class="owner-info-input  no-border" readonly />
+                                <div style="clear: both"></div>
+                            }
+                        }
+                    }
+
+                    <br />
+                    @if (Model.Owner.Address != null) {
+                        <label asp-for="@Model.Owner.Address.StreetAddress"></label>
+                        <input asp-for="@Model.Owner.Address.StreetAddress" class="owner-info-input no-border" readonly />
+                        <br />
+                        <label asp-for="@Model.Owner.Address.City"></label>
+                        <input asp-for="@Model.Owner.Address.City" style="width: 50%" class="owner-info-input no-border" readonly />
+                        <br />
+                        <label asp-for="@Model.Owner.Address.State"></label>
+                        <select class="owner-info-select no-border" asp-for="@Model.Owner.Address.State" asp-items="ViewBag.State" disabled></select>
+                        <br />
+                        <label asp-for="@Model.Owner.Address.Zip"></label>
+                        <input asp-for="@Model.Owner.Address.Zip" class="owner-info-input  no-border" readonly />
+                        <span asp-validation-for="@Model.Owner.Address.Zip" class="text-danger"></span>
+
+                    }
+                    <br /><br />
+                    <label asp-for="@Model.Owner.Birthday"></label>
+                    <input asp-for="@Model.Owner.Birthday" class="owner-info-input no-border" readonly />
+                    <br />
+                    <label asp-for="@Model.Owner.Occupation"></label>
+                    <input asp-for="@Model.Owner.Occupation" class="owner-info-input no-border" readonly />
+                    <br />
+                    <label asp-for="@Model.Owner.CoOwner"></label>
+                    <input value="@ViewData["CoOwner"]" name="coowner" class="owner-info-input no-border" readonly />
+
+                    <br />
+
+                    <label id="emergency-contact">Emergency Contact</label><br />
+                    <div style="clear: both"></div>
+                    <label>Name</label>
+                    <input asp-for="@Model.Owner.EmergencyContactName" class="owner-info-input  no-border" readonly /> <br />
+                    <label>Phone</label>
+                    <input asp-for="@Model.Owner.EmergencyContactPhone" name="emergencyphone" value="@Extensions.FormatPhone(Model.Owner.EmergencyContactPhone)" class="owner-info-input  no-border" readonly />
+
+                    <div style="clear: both"></div>
+                    <input type="submit" value="Save" class="btn btn-accent owner-info-save" style="display: none" />
+                </div>
+            </form>
+
+            @if (HttpContext.Session.GetString("SessionUserType") == "Admin") // This will cause the button to reset a users password to the default to appear.
+{
+<br />
+<div class="box-footer with-border">
+    <h4 class="text-accent">Account Administration</h4>
+    <br />
+    Password is default:
+    @if (Model.PasswordIsDefault == true) {
+        <span class="text-success">YES</span>
+    }
+    else {
+        <span class="text-danger">NO</span>
+    }
+    <br />
+    <br />
+    <a asp-page="./ResetPassword" asp-route-id="@Model.Owner.User.UserID" class="btn btn-danger">Reset Password</a>
+    <br />
+</div>
+}
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="box box-default profile-keys" id="profile-keys">
+            <div class="box-header with-border">
+                <h3 class="box-title">Keys</h3>
+            </div>
+            @if (Model.KeyHistories != null && Model.KeyHistories.Count > 0) {
+
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Serial Number</th>
+                            <th>Date Issued</th>
+                            <th>Date Returned</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var key in Model.KeyHistories) {
+
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => key.Key.SerialNumber)</td>
+                                <td>@Html.DisplayFor(modelItem => key.DateIssued)</td>
+                                <td>@Html.DisplayFor(modelItem => key.DateReturned)</td>
+                                @if (key.Status != null) {
+                                    if (key.Status.Equals("Active")) {
+                                        <td><span class="badge badge-success"> @Html.DisplayFor(modelItem => key.Status)</span></td>
+                                    }
+                                    else if (key.Status.Equals("Lost")) {
+                                        <td><span class="badge badge-danger">@Html.DisplayFor(modelItem => key.Status)</span></td>
+                                    }
+                                    else if (key.Status.Equals("Returned")) {
+                                        <td><span class="badge badge-warning">@Html.DisplayFor(modelItem => key.Status)</span></td>
+                                    }
+                                }
+                            </tr>
+
+                        }
+                    </tbody>
+                </table>
+            }
+            else { <h3 class="text-center"><strong>No Key History to show</strong></h3>}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="box box-default owner-lots" id="profile-lots">
+            <div class="box-header with-border">
+                <h3 class="box-title">Lots</h3>
+            </div>
+            @if (Model.Lots != null && Model.Lots.Count > 0) {
+
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Lot #</th>
+                            <th>Inventory</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Lots != null) {
+                            foreach (var lot in Model.Lots) {
+                                <tr>
+
+                                    <td><a asp-page="./LotDetail" asp-route-id="@lot.LotID">#@Html.DisplayFor(modelItem => lot.LotNumber)</a></td>
+                                    <td>
+                                        @if (lot.LotInventory.Count > 0) {
+                                            foreach (var item in lot.LotInventory) {
+                                                @Html.DisplayFor(modelItem => item.Inventory.Description)
+                                                if (!item.Equals(lot.LotInventory.Last())) {
+                                                    <span>, </span>
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            <p>No lot inventory to show</p>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            }
+            else { <h3 class="text-center"><strong>No assigned lots to show</strong></h3>}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default profile-past-payments" id="profile-past-payments">
+            <div class="box-header with-border">
+                <h3 class="box-title">Activity History</h3>
+            </div>
+            @if (Model.OwnerHistories != null && Model.OwnerHistories.Count > 0) {
+
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Associated Lot</th>
+                            <th>Type</th>
+                            @if (Model.SignedInOwner.User?.UserType == "Admin") {
+                                <th>Privacy Level</th>
+                            }
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var history in Model.OwnerHistories) {
+                            if (history.PrivacyLevel == "Public" && Model.SignedInOwner?.User.UserType == "Owner") {
+
+                                <tr>
+                                    <td>@Html.DisplayFor(modelItem => history.Date)</td>
+                                    @if (history.Lot != null) {
+                                        <td><a asp-page="./LotDetail" asp-route-id="@history.Lot.LotID">#@Html.DisplayFor(modelItem => history.Lot.LotNumber)</a></td>
+                                    }
+                                    else {
+                                        <td></td>
+                                    }
+                                    <td>@Html.DisplayFor(modelItem => history.HistoryType.Description)</td>
+                                    <td class="description">
+                                        <div class="flex-parent">
+                                            <div class="flex-child truncate" id="@(" desc" + history.OwnerHistoryID)">
+                                                <span>@Html.DisplayFor(modelItem => history.Description)</span>
+                                            </div>
+                                            <a href="#" class="moreDesc hidden" data-toggle="modal" data-target="#moreInfo" data-id="@history.OwnerHistoryID">more</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            else if (Model.SignedInOwner?.User.UserType == "Admin") {
+                                <tr>
+                                    <td>@Html.DisplayFor(modelItem => history.Date)</td>
+                                    @if (history.Lot != null) {
+                                        <td><a asp-page="./LotDetail" asp-route-id="@history.Lot.LotID">#@Html.DisplayFor(modelItem => history.Lot.LotNumber)</a></td>
+                                    }
+                                    else {
+                                        <td></td>
+                                    }
+                                    <td>@Html.DisplayFor(modelItem => history.HistoryType.Description)</td>
+                                    <td>@Html.DisplayFor(modelItem => history.PrivacyLevel)</td>
+
+                                    <td class="description">
+                                        <div class="flex-parent">
+                                            <div class="flex-child truncate" id="@("desc" + history.OwnerHistoryID)">
+                                                <span>@Html.DisplayFor(modelItem => history.Description)</span>
+                                            </div>
+                                            <a href="#" class="moreDesc hidden" data-toggle="modal" data-target="#moreInfo" data-id="@history.OwnerHistoryID">more</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            }
+            else { <h3 class="text-center"><strong>No history to show</strong></h3>}
+        </div>
+    </div>
+</div>
+
+<!----------More info-------------->
+<div class="modal fade" id="moreInfo" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">History Description</h4>
+            </div>
+            <div class="modal-body">
+                <p id="more">more</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(window).resize(function () {
+            divSameSize();
+        });
+        $(document).ready(function () {
+            divSameSize();
+        });
+
+        function divSameSize() {
+
+            $profileHeight = $("#owner-profile").outerHeight() - 5;
+            $("#profile-lots").css("height", ($profileHeight / 2));
+            $("#profile-keys").css("height", ($profileHeight / 2));
+
+        }
+
+        $(document).on("click",
+            ".moreDesc",
+            function () {
+                var id = $(this).data('id');
+                var text = $("#desc" + id).text();
+                $(".modal-body #more").text(text);
+
+            });
+    </script>
+}

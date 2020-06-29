@@ -1,0 +1,223 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.Maintenance.IndexModel
+
+@{ ViewData["Title"] = "HOA Maintenance";
+                ViewData["PageName"] = "Maintenance";
+                TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default">
+            <div class="box-header with-border">
+                <h3 class="box-title">Sundridge Maintenance History</h3>
+            </div>
+
+            <div class="form-group search-div pull-left">
+                <div class="form-group has-feedback">
+                    <form asp-page="./Index" method="get" class="searchForm">
+                        <input type="text" name="SearchString" value="@Model.CurrentFilter" class="form-control search" id="inputValidation" placeholder="Search" />
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </form>
+                </div>
+            </div>
+            <div class="pull-right export-pdf table-top">
+                <a class="btn btn-accent" asp-page="./Create">Add Maintenance</a>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            Date
+                            @if (@Model.CurrentSort == "date_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="date_asc" asp-route-SearchString="@RouteData.Values["SearchString"]"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="date_desc" asp-route-searchString="@RouteData.Values["searchString"]"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Common Area Asset
+                            @if (@Model.CurrentSort == "name_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="name_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="name_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Cost
+                            @if (@Model.CurrentSort == "cost_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="cost_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="cost_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>Description</th>
+                        <th colspan="2"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var maintenance in Model.Maintenance) {
+                        if (maintenance.IsArchive == false) {
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => maintenance.DateCompleted)</td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => maintenance.CommonAreaAsset.AssetName)
+                                </td>
+                                <td>$@Html.DisplayFor(modelItem => maintenance.Cost)</td>
+                                <td class="description">
+                                    <div class="flex-parent">
+                                        <div class="flex-child truncate" id="@("desc" + maintenance.MaintenanceID)">
+                                            <span>@Html.DisplayFor(modelItem => maintenance.Description)</span>
+                                        </div>
+                                        <a href="#" class="moreDesc hidden" id="commonAreaMore" data-toggle="modal" data-target="#moreInfo" data-id="@maintenance.MaintenanceID">more</a>
+                                    </div>
+                                </td>
+                                <td data-toggle="tooltip" title="Edit Maintenance">
+                                    <a asp-page="./Edit" asp-route-id="@maintenance.MaintenanceID"><i class="fas fa-pen"></i></a>
+                                </td>
+                                <td data-toggle="tooltip" title="Delete Maintenance">
+                                    <a asp-page="./Delete" class="deleteItem" data-toggle="modal" data-target="#deleteMaint" data-id="@maintenance.MaintenanceID"><i class="fas fa-trash-alt"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+            @{
+                var prevDisabled = !Model.Maintenance.HasPreviousPage ? "disabled" : "";
+                var nextDisabled = !Model.Maintenance.HasNextPage ? "disabled" : "";
+                var pageIndex = Model.Maintenance.PageIndex;
+            }
+            <ul class="pagination">
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="1"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @prevDisabled">
+                    First
+                </a>
+                @if (pageIndex == 1) {
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@pageIndex"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default active">
+                        @pageIndex
+                    </a>
+                    if (Model.Maintenance.TotalPages > 1) {
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(pageIndex + 1)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(pageIndex + 1)
+                        </a>
+                        if (Model.Maintenance.TotalPages > 2) {
+                            <a asp-page="./Index"
+                               asp-route-sortOrder="@Model.CurrentSort"
+                               asp-route-pageIndex="@(pageIndex + 2)"
+                               asp-route-currentFilter="@Model.CurrentFilter"
+                               class="btn btn-default">
+                                @(pageIndex + 2)
+                            </a>
+                        }
+                    }
+                }
+                else {
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@(pageIndex - 1)"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default">
+                        @(pageIndex - 1)
+                    </a>
+
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@pageIndex"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default active">
+                        @pageIndex
+                    </a>
+                    if (pageIndex != Model.Maintenance.TotalPages) {
+
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(pageIndex + 1)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(pageIndex + 1)
+                        </a>
+                    }
+                }
+
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="@Model.Maintenance.TotalPages"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @nextDisabled">
+                    Last
+                </a>
+            </ul>
+            <br /><br />
+        </div>
+    </div>
+</div>
+
+<!----------Delete owner Modal-------------->
+<div class="modal fade" id="deleteMaint" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Delete Maintenance</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure that you would like to delete this maintenance event? </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-danger" id="deleteModal" asp-page="./Delete">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------More info-------------->
+<div class="modal fade" id="moreInfo" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Maintenance Description</h4>
+            </div>
+            <div class="modal-body">
+                <p id="more">more</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+
+        $(document).on("click", ".deleteItem",
+            function () {
+                var id = $(this).data('id');
+                var url = $("#deleteModal").attr("href");
+                $("#deleteModal").attr("href", url + "?id=" + id);
+            });
+    </script>
+}

@@ -1,0 +1,84 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@using Newtonsoft.Json
+@model HOASunridge.Pages.Admin.Keys.EditModel
+
+@{ ViewData["Title"] = "Edit";
+    ViewData["PageName"] = "Keys";
+    TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+<div class="box box-default edit">
+    <div class="box-header with-border">
+        <h3 class="box-title">Edit a Key</h3>
+    </div>
+
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Key.KeyID" />
+        <input type="hidden" asp-for="Key.KeyHistory.KeyHistoryID" />
+        <div class="form-group">
+            <label asp-for="Key.SerialNumber" class="control-label"></label>
+            <input asp-for="Key.SerialNumber" class="form-control" />
+            <span asp-validation-for="Key.SerialNumber" class="text-danger"></span>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Key.KeyHistory.DateIssued" class="control-label"></label>
+                    <input asp-for="Key.KeyHistory.DateIssued" class="form-control" />
+                    <span asp-validation-for="Key.KeyHistory.DateIssued" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Key.KeyHistory.DateReturned" class="control-label"></label>
+                    <input asp-for="Key.KeyHistory.DateReturned" class="form-control" />
+                    <span asp-validation-for="Key.KeyHistory.DateReturned" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Key.KeyHistory.Status" class="control-label"></label>
+            <select class="form-control" asp-for="Key.KeyHistory.Status" asp-items="ViewBag.Status">
+                <option>--Select Status--</option>
+            </select>
+            <span asp-validation-for="Key.KeyHistory.Status" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Key.KeyHistory.PaidAmount" class="control-label"></label>
+            <div class="input-group">
+                <span class="input-group-addon">$</span>
+                <input asp-for="Key.KeyHistory.PaidAmount" class="form-control" />
+            </div>
+            <span asp-validation-for="Key.KeyHistory.PaidAmount" class="text-danger"></span>
+        </div>
+        <label>Owner</label>
+        <div class="form-group">
+            <input class="form-control" type="text" id="owner" name="ownerName" asp-for="Key.KeyHistory.Owner.FullName" />
+        </div>
+        <div class="form-group">
+            <a asp-page="Index" class="btn btn-default">Cancel</a>
+            <input type="submit" value="Save" class="btn btn-accent pull-right" />
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        var list = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Owners));
+        $("#owner").autocomplete({
+            minLength: 0,
+            source: list,
+            select: function (event, ui) {
+                $("#owner").val(ui.item.Name);
+            }
+        });
+    </script>
+}

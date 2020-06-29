@@ -1,0 +1,77 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@using Newtonsoft.Json
+@model HOASunridge.Pages.Admin.Transactions.CreateModel
+
+@{ ViewData["Title"] = "Create Transaction";
+                ViewData["PageName"] = "Transactions";
+                TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default admin-transactions" id="admin-transactions">
+            <div class="box-header with-border">
+                <h3 class="box-title">Sundridge Transactions</h3>
+            </div>
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                @Html.ValidationSummary(false, "", new { @style = "color: red" })
+                <div class="form-group">
+                    <label asp-for="Transaction.TransactionType.Description" class="control-label"></label>
+                    <small class="text-danger">*Required</small>
+                    <select asp-for="Transaction.TransactionTypeID" class="form-control" asp-items="@Model.TransactionTypeSL">
+                        <option value="">--Select Type--</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Transaction.Amount" class="control-label"></label>
+                    <small class="text-danger">*Required</small>
+                    <div class="input-group">
+                        <span class="input-group-addon">$</span>
+                        <input asp-for="Transaction.Amount" class="form-control" />
+                    </div>
+                    <span asp-validation-for="Transaction.Amount" class="text-danger"></span>
+                </div>
+
+                <label>Associated Accounts</label>
+                <small class="text-danger">*Required</small>
+                <div class="form-group" style="margin-left: 15px">
+                    <p>
+                        <input type="checkbox" name="allOwners" value="1" />Apply to all primary owners <br />
+                        <strong>--Or--<br /></strong>
+                        Search by Owner: <input type="text" id="owner" name="ownerName" class="form-control" value="" />
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Transaction.Description" class="control-label"></label>
+                    <textarea rows=" 5" asp-for="Transaction.Description" class="form-control"></textarea>
+                    <span asp-validation-for="Transaction.Description" class="text-danger"></span>
+                </div>
+                <input type="button" onclick="window.history.back()" class="btn btn-default" value="Cancel">
+                <input type="submit" class="btn btn-accent pull-right" value="Create">
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        var list = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Owners));
+        $("#owner").autocomplete({
+            minLength: 0,
+            source: list,
+            select: function (event, ui) {
+                $("#owner").val(ui.item.Name);
+            }
+        });
+    </script>
+}

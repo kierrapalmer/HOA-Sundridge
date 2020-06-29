@@ -1,0 +1,323 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.Transactions.IndexModel
+@using Microsoft.AspNetCore.Http
+
+@{ ViewData["Title"] = "Index";
+                ViewData["PageName"] = "Transactions";
+                TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-default admin-transactions" id="admin-transactions">
+            <div class="box-header with-border">
+                <h3 class="box-title">Sundridge Transactions</h3>
+                <p class="pull-right"><strong>Open HOA Balance: <span class="text-success">@Model.OpenBalance</span></strong></p>
+            </div>
+
+            <div class="form-group search-div pull-left">
+                <div class="form-group has-feedback">
+                    <form asp-page="./Index" method="get" class="searchForm">
+                        <input type="text" name="SearchString" value="@Model.CurrentFilter" class="form-control search" id="inputValidation" placeholder="Search" />
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </form>
+                </div>
+            </div>
+            <div class="pull-right export-pdf table-top">
+                <a class="btn btn-accent" asp-page="./Create">Add Transaction</a>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            Type
+                            @if (@Model.CurrentSort == "type_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="type_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="type_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Date Added
+                            @if (@Model.CurrentSort == "date_added_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="date_added_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="date_added_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Date Paid
+                            @if (@Model.CurrentSort == "date_paid_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="date_paid_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="date_paid_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Amount
+                            @if (@Model.CurrentSort == "amount_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="amount_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="amount_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Status
+                            @if (@Model.CurrentSort == "status_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="status_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="status_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+
+                        <th>
+                            Account
+                            @if (@Model.CurrentSort == "account_desc") {
+                                <a asp-page="./Index" asp-route-sortOrder="account_asc"><i class="fas fa-sort-up"></i></a>
+                            }
+                            else {
+                                <a asp-page="./Index" asp-route-sortOrder="account_desc"><i class="fas fa-sort-down"></i></a>
+                            }
+                        </th>
+                        <th>
+                            Notes
+                        </th>
+                        <th colspan="3"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var transaction in Model.Transaction) {
+                        if (transaction.IsArchive == false) {
+
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => transaction.TransactionType.Description)</td>
+                                <td>@Html.DisplayFor(modelItem => transaction.DateAdded)</td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => transaction.DatePaid)
+                                </td>
+                                <td>$@Html.DisplayFor(modelItem => transaction.Amount)</td>
+
+                                <td>
+                                    @if (transaction.Status != null) {
+                                        if (transaction.Status.Equals("Paid")) {
+                                            <span class="badge badge-success"> Paid </span>
+                                        }
+                                        else if (transaction.Status.Equals("Exempt")) {
+                                            <span class="badge badge-danger"> Exempt </span>
+                                        }
+                                        else if (transaction.Status.Equals("Open")) {
+                                            <span class="badge badge-warning"> Open </span>
+                                        }
+                                        else {
+                                            <span class="badge badge-default"> @transaction.Status </span>
+
+                                        }
+                                    }
+                                </td>
+
+                                <td> <a asp-page="/Owner/Profile" asp-route-id="@transaction.Owner.OwnerID">@Html.DisplayFor(modelItem => transaction.Owner.FullName)</a></td> @*TODO: Link to correct owner*@
+
+                                <td>
+                                    <a href="#" class="moreDesc" data-toggle="modal" data-target="#moreInfo" data-desc="@transaction.Description">View</a>
+                                </td>
+                                <td data-toggle="tooltip" title="Mark as Paid">
+                                    @if (transaction.Status != null) {
+                                        if (!transaction.Status.Equals("Paid")) {
+                                            <a href="#" id="markPaid" data-id="@transaction.TransactionID" data-toggle="modal" data-target="#markTransaction"><i class=" icon-success fas fa-dollar-sign"></i></a>
+                                        }
+                                        else {
+                                            <i class=" icon-secondary fas fa-dollar-sign"></i>
+                                        }
+                                    }
+                                </td>
+                                <td data-toggle="tooltip" title="Edit Transaction">
+                                    <a asp-page="./Edit" asp-route-id="@transaction.TransactionID"><i class="fas fa-pen"></i></a>
+                                </td>
+                                <td data-toggle="tooltip" title="Delete Transaction">
+                                    <a asp-page="./Delete" class="deleteItem" data-toggle="modal" data-target="#deleteTransaction" data-id="@transaction.TransactionID"><i class="fas fa-trash-alt"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            @{
+                var prevDisabled = !Model.Transaction.HasPreviousPage ? "disabled" : "";
+                var nextDisabled = !Model.Transaction.HasNextPage ? "disabled" : "";
+                var pageIndex = Model.Transaction.PageIndex;
+            }
+            <ul class="pagination">
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="1"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @prevDisabled">
+                    First
+                </a>
+                @if (pageIndex == 1) {
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@pageIndex"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default active">
+                        @pageIndex
+                    </a>
+                    if (Model.Transaction.TotalPages > 1) {
+
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(pageIndex + 1)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(pageIndex + 1)
+                        </a>
+
+                        if (Model.Transaction.TotalPages > 2) {
+
+                            <a asp-page="./Index"
+                               asp-route-sortOrder="@Model.CurrentSort"
+                               asp-route-pageIndex="@(pageIndex + 2)"
+                               asp-route-currentFilter="@Model.CurrentFilter"
+                               class="btn btn-default">
+                                @(pageIndex + 2)
+                            </a>
+                        }
+                    }
+                }
+                else {
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@(pageIndex - 1)"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default">
+                        @(pageIndex - 1)
+                    </a>
+
+                    <a asp-page="./Index"
+                       asp-route-sortOrder="@Model.CurrentSort"
+                       asp-route-pageIndex="@pageIndex"
+                       asp-route-currentFilter="@Model.CurrentFilter"
+                       class="btn btn-default active">
+                        @pageIndex
+                    </a>
+                    if (pageIndex != Model.Transaction.TotalPages) {
+
+                        <a asp-page="./Index"
+                           asp-route-sortOrder="@Model.CurrentSort"
+                           asp-route-pageIndex="@(pageIndex + 1)"
+                           asp-route-currentFilter="@Model.CurrentFilter"
+                           class="btn btn-default">
+                            @(pageIndex + 1)
+                        </a>
+                    }
+                }
+
+                <a asp-page="./Index"
+                   asp-route-sortOrder="@Model.CurrentSort"
+                   asp-route-pageIndex="@Model.Transaction.TotalPages"
+                   asp-route-currentFilter="@Model.CurrentFilter"
+                   class="btn btn-default @nextDisabled">
+                    Last
+                </a>
+            </ul>
+            <br /><br />
+        </div>
+    </div>
+</div>
+
+<!----------Mark Transaction as paid Modal-------------->
+<div class="modal fade" id="markTransaction" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Mark Transaction as Paid</h4>
+            </div>
+            <form method="post">
+                <div class="modal-body">
+
+                    <p>Are you sure that you would like to mark this transaction as paid? </p>
+                    <input type="hidden" id="transId" name="id" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-accent">Mark as Paid</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!----------More info-------------->
+<div class="modal fade" id="moreInfo" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Transaction Description</h4>
+            </div>
+            <div class="modal-body">
+                <p id="more">more</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!----------Delete Transaction Modal-------------->
+<div class="modal fade" id="deleteTransaction" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Delete Transaction</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure that you would like to delete this transaction? </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-danger" id="deleteModal" asp-page="./Delete">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).on("click",
+            ".moreDesc",
+            function () {
+                var text = $(this).data('desc');
+                $(".modal-body #more").text(text);
+
+            });
+
+        $(document).on("click", ".deleteItem",
+            function () {
+                var id = $(this).data('id');
+                var url = $("#deleteModal").attr("href");
+                $("#deleteModal").attr("href", url + "?id=" + id);
+            });
+
+        $(document).on("click", "#markPaid",
+            function () {
+                var id = $(this).data('id');
+                $("#transId").attr("value", id);
+            });
+    </script>
+}

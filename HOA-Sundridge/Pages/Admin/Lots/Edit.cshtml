@@ -1,0 +1,115 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@using Newtonsoft.Json
+@model HOASunridge.Pages.Admin.Lots.EditModel
+
+@{
+                ViewData["Title"] = "Edit Lot";
+                ViewData["PageName"] = "Lots";
+                TempData["PageUrl"] = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetDisplayUrl(Request);
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect(@Url.Content("~/User/Login"));
+}
+
+<div class="box box-default edit">
+    <div class="box-header with-border">
+        <h3 class="box-title">Edit a Lot</h3>
+    </div>
+    <form method="post">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Lot.LotID"></label>
+                    <input type="text" class="form-control" value="@Model.Lot.LotID" disabled />
+                    <input asp-for="Lot.LotID" type="hidden" id="taxID" value="@Model.Lot.LotID" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Lot.LotNumber"></label>
+                    <input type="text" class="form-control" value="@Model.Lot.LotNumber" disabled />
+                    <input asp-for="Lot.LotNumber" type="hidden" id="owner" value="@Model.Lot.LotNumber" />
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Physical Street Address</label>
+            <input asp-for="Lot.Address.StreetAddress" type="text" class="form-control" id="owner-street-address" value="@Model.Lot.Address.StreetAddress" />
+            <span asp-validation-for="Lot.Address.StreetAddress" class="text-danger"></span>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Lot.Address.City"></label>
+                    <input asp-for="Lot.Address.City" type="text" class="form-control" value="@Model.Lot.Address.City" />
+                    <span asp-validation-for="Lot.Address.City" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label asp-for="Lot.Address.State"></label> <br />
+                    <select class="form-control" asp-for="Lot.Address.State" asp-items=@ViewBag.State>
+                        <option value="">Choose your state</option>
+                    </select>
+                    <span asp-validation-for="Lot.Address.State" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Lot.Address.Zip"></label>
+            <input asp-for="Lot.Address.Zip" type="text" class="form-control" id="owner-zip" value="@Model.Lot.Address.Zip" />
+            <span asp-validation-for="Lot.Address.Zip" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Lot.Status"></label><br />
+            <select class="form-control" asp-for="Lot.Status" asp-items="ViewBag.Status"></select>
+            <span asp-validation-for="Lot.Status" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Lot.LotInventory">Amenities</label><br />
+            <table>
+                <tr>
+                    @if (Model.AssignedLotInventoryList != null) {
+                        foreach (var item in Model.AssignedLotInventoryList) {
+                        @: </tr><tr>
+                            @: <td>
+                                <input type="checkbox"
+                                       name="selectedInventory"
+                                       value="@item.InventoryID"
+                                       @(Html.Raw(item.Assigned ? "checked=\"checked\"" : "")) />
+                                @item.Description
+                            @:</td>
+                        }
+
+                    @:</tr>
+                }
+                </table>
+            </div>
+            <label>Current Primary Owner</label>
+            <input type="text" id="owner1" name="ownerName" value="@Model.Lot.Owner?.FullName" class="form-control" />
+            <br />
+            @Html.ValidationSummary(false, "", new { @style = "color: red" })
+
+            <br />
+            <a asp-page="./Index" class="btn btn-default">Cancel</a>
+            <input type="submit" value="Save" class="btn btn-accent pull-right" />
+        </form>
+    </div>
+
+    @section Scripts {
+        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+        <script>
+            var list = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Owners));
+            $("#owner1").autocomplete({
+                minLength: 0,
+                source: list,
+                select: function (event, ui) {
+                    $("#owner1").val(ui.item.Name);
+                }
+            });
+        </script>
+    }

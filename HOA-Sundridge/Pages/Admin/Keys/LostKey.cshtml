@@ -1,0 +1,36 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.Admin.Keys.LostKeyModel
+@{ ViewData["PageName"] = "Keys";
+}
+
+@*This is used to check if the user has logged in or not.*@
+@if (HttpContext.Session.GetString("SessionUser") == null || HttpContext.Session.GetString("SessionUser") == "") {
+    Response.Redirect("/User/Login");
+}
+
+<form method="post" id="lostKeyForm">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Key.KeyID" />
+    <input type="hidden" asp-for="Key.KeyHistory.KeyHistoryID" />
+    <input type="hidden" asp-for="Key.KeyHistory.DateIssued" />
+    <input type="hidden" asp-for="Key.KeyHistory.OwnerID" />
+
+    <input type="hidden" asp-for="Key.SerialNumber" />
+    <p id="message"></p>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        $(document).ready(function () {
+            $('#lostKeyForm').submit();
+        });
+
+        setTimeout(displayMessage, 3000);
+        function displayMessage() {
+            document.getElementById("message").innerHTML = 'If you are not redirected soon, please click <a asp-page="./Index" onclick="form.submit()">here </a>';
+        }
+    </script>
+}

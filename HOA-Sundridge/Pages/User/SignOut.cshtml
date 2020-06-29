@@ -1,0 +1,19 @@
+﻿@page
+@using Microsoft.AspNetCore.Http
+@model HOASunridge.Pages.User.SignOutModel
+@{
+    Layout = "Shared/_UserLayout";
+    ViewData["Title"] = "HOA Login";
+}
+
+@{HttpContext.Session.SetString("SessionUser", "");
+    HttpContext.Session.SetString("SessionUserType", "");}
+
+<div class="container-fluid auth-container">
+    <div class="text-center">
+        <h2>Sundridge HOA</h2>
+        <p style="color:green">Sign Out Successful</p>
+    </div>
+</div>
+
+@{Response.Redirect(@Url.Content("~/User/Login"));}

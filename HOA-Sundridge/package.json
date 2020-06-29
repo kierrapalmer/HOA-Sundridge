@@ -1,0 +1,15 @@
+{
+  "name": "hoa-sundridge",
+  "version": "1.0.0",
+  "description": "hoa sundridge",
+  "main": "index.js",
+  "dependencies": {
+    "admin-lte": "^2.4.8"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

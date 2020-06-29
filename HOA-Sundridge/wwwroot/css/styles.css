@@ -1,0 +1,486 @@
+﻿:root {
+    --accent: #3c8dbc;
+}
+
+.table a i {
+    color: darkslategray;
+}
+
+.far {
+    margin-right: 5px;
+}
+
+.user-image {
+    display: block;
+}
+
+.user-name {
+    color: white;
+    margin-top: 10px;
+    font-size: 1.5em;
+}
+
+.btn-accent {
+    background-color: var(--accent);
+    color: white;
+}
+
+    .btn-accent:hover {
+        background-color: #31749b;
+        color: white;
+    }
+
+.btn-secondary-dark {
+    background-color: #4d4d4d;
+    color: white;
+}
+
+    .btn-secondary-dark:hover {
+        background-color: #333333;
+        color: white;
+    }
+
+.btn-white {
+    background-color: white;
+    color: var(--accent);
+}
+
+.box {
+    padding: 10px 15px 20px;
+}
+
+.box-title {
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.box table {
+    margin-top: 10px;
+}
+
+.row {
+    overflow: hidden;
+}
+
+[class*="col-"] {
+    margin-bottom: -99999px;
+    padding-bottom: 99999px;
+}
+
+.search {
+    color: black;
+    border: none;
+    border-bottom: 1px solid grey;
+    padding-left: 5px;
+}
+
+.ui-autocomplete {
+    max-height: 100px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+}
+
+.table-top, .search {
+    margin: 10px 0;
+}
+
+/*-- User --*/
+.auth-container {
+    background: linear-gradient(180deg, var(--accent) 50%, white 50%);
+}
+
+.auth-box {
+    width: 50% !important;
+    position: relative;
+    top: 50%;
+    left: 25%;
+    box-shadow: 0 0 10px #868e96;
+}
+
+.login-btn {
+    margin: 15px 0;
+    padding: 10px;
+}
+
+.profile-btn {
+    border-radius: 0;
+    width: 50%;
+    font-weight: bolder;
+}
+
+/*-- Dashboard-- */
+.form-control:focus {
+    border-color: inherit;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+.no-border {
+    border: 0;
+    box-shadow: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.hide {
+    display: none;
+}
+
+#owner-img {
+    width: 100%;
+    /* border-radius: 150px; */
+}
+
+#info {
+    padding-top: 4%;
+}
+
+#owner-info label, #owner-info input {
+    padding-left: 5px;
+}
+
+#owner-info-header {
+    margin-bottom: 10px;
+}
+
+.owner-info label {
+    display: inline-block;
+    float: left;
+    clear: left;
+    width: 40%;
+    text-align: left;
+}
+
+.owner-info input, .owner-info select {
+    display: inline-block;
+    float: left;
+    margin-top: 3px;
+}
+
+#owner-complaint {
+    padding: 20px
+}
+
+.btn-report {
+    width: 100% !important;
+    height: 50%;
+    margin: 5px 0;
+}
+
+    .btn-report i {
+        display: block;
+        font-size: 1.2em;
+        padding: 5px 0;
+    }
+
+#owner-keys, #owner-complaint {
+    min-height: 250px;
+}
+/*Owner Profile*/
+.badge-profile {
+    margin-left: 10px;
+}
+
+#owner-profile-img {
+    width: 90%;
+}
+
+#owner-profile-box i {
+    font-size: 1.3em;
+    padding: 5px;
+}
+
+#profile-balance {
+    border: 1px solid black;
+    text-align: center;
+    padding: 15px;
+    margin-right: 15%;
+}
+
+#owner-profile-box .balance-amount {
+    font-size: 1.3em;
+}
+
+#owner-profile input {
+    margin-left: 5px;
+}
+
+#profile-keys, #profile-lots {
+    height: 250px;
+    overflow-y: scroll;
+}
+
+#profile-past-payments {
+    height: 300px;
+    overflow-y: scroll;
+}
+
+.ml {
+    width: 70%;
+    margin-left: 15px;
+}
+
+#emergency-contact {
+    color: red;
+    padding-top: 10px
+}
+
+/*Lot Detail*/
+
+.address-box {
+    border: 1px solid black;
+    width: fit-content;
+    padding: 15px;
+    text-align: center;
+}
+
+.lot-titles {
+    font-weight: bold;
+}
+
+.panel-primary .panel-heading a {
+    color: white;
+}
+
+.pay-now {
+    background-color: #ffc439;
+    border-radius: 15px;
+    width: 60%;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 1em;
+    margin: 0 auto;
+}
+
+    .pay-now img {
+        width: 30%;
+    }
+
+.billing {
+    width: 20%;
+    float: right;
+    padding: 3px 0;
+}
+
+/*Classifieds*/
+.classifieds form label {
+    margin-top: 10px;
+}
+
+.classified-contact p {
+    display: inline;
+    padding-right: 10px;
+}
+
+.classifieds .btn {
+    padding: 5px 40px;
+    margin: 20px 5px;
+}
+
+.classifieds .icon-btn {
+    padding: 5px 10px !important;
+    margin: 0 !important;
+    font-size: .8em;
+}
+
+.classifieds .carousel-indicators li {
+    background-color: #ddd;
+}
+
+    .classifieds .carousel-indicators li .active {
+        background-color: #999;
+    }
+
+.edit h3 {
+    padding-top: 10px;
+}
+
+.edit .btn {
+    margin: 5px !important;
+}
+
+.classified-item img {
+    width: 100% !important;
+    height: 16vw;
+    padding-top: 10px;
+}
+
+.classified-item .price {
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+.classified-item h4, .classified-item p {
+    margin: 0 !important;
+}
+
+.classifieds .contact-info {
+    border: 1px solid darkslategray;
+    padding: 5px;
+    margin: 10px 0;
+    min-width: 35%;
+    width: fit-content;
+    border-radius: 5px;
+}
+
+    .classifieds .contact-info i {
+        color: var(--accent);
+        margin-right: 3px;
+    }
+
+.edit-classified {
+    padding-top: 20px;
+}
+
+/*carousel*/
+.carousel-inner {
+    width: 100%;
+    object-fit: cover;
+}
+
+    .carousel-inner img {
+        height: 200px !important;
+        margin: 0 auto;
+    }
+
+#carousel-custom > div > div > div.item > img {
+    object-fit: contain;
+}
+
+.indicator li {
+    list-style-type: none;
+    display: inline;
+}
+
+.indicator {
+    margin-right: 10px;
+}
+
+    .indicator img, .indicator div {
+        width: 50px;
+        height: 40px;
+        background-size: cover;
+        background-repeat: no-repeat;
+        display: inline-block;
+        margin: 3px;
+    }
+
+@media only screen and (max-width: 950px) {
+    .classified-item img {
+        width: 90% !important;
+        max-height: 300px;
+    }
+}
+/*Tables*/
+.table > thead > tr > th,
+.table > tbody > tr > th,
+.table > thead > tr > td,
+.table > tbody > tr > td {
+    border-top: 1px solid lightgray;
+}
+
+.table > thead > tr > th {
+    border-bottom: 3px solid #f4f4f4;
+}
+
+.table thead {
+    font-size: 1em;
+}
+
+.pagination .active {
+    background-color: var(--accent);
+    color: white;
+}
+
+.flex-parent {
+    display: flex;
+}
+
+.truncate {
+    flex: 1;
+    min-width: 0 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.description {
+    max-width: 350px;
+}
+
+.break-email {
+    word-break: break-all;
+}
+
+.search-div {
+    width: 20%;
+}
+
+.table-topper {
+    height: 300px;
+}
+/*Table modals*/
+.modalForm label {
+    padding-top: 15px;
+}
+
+#owner-city, #owner-state {
+    width: 40%;
+    display: inline-block;
+}
+
+/*Table Badges*/
+
+.badge-accent {
+    background-color: #00B5E9;
+}
+
+.badge-warning {
+    background-color: #fd7e14;
+}
+
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-secondary {
+    background-color: #868e96;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+
+/*Table icons*/
+.icon-success {
+    color: green !important;
+}
+
+.icon-secondary {
+    color: slategray !important;
+}
+
+.icon-warning {
+    color: #fd7e14 !important;
+}
+
+.icon-danger {
+    color: #dc3545 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-success {
+    color: green !important;
+}
+
+.text-accent {
+    color: var(--accent) !important;
+}
+
+.hidden {
+    display: none !important;
+}
